@@ -26,10 +26,10 @@ namespace CommunicationNetwork.Graph {
     /// storing, creating graphs and modifying graphs.
     /// </summary>
     public interface IGraphStorage{
-        List<INode> Nodes { get; set; }
-        List<IEdge> Edges { get; set; }
-        Dictionary<INode, IEdge> OutgoingEdge { get; set; }
-        Dictionary<INode, IEdge> IncomingEdge { get; set; }
+        IReadOnlyList<INode> Nodes { get; set; }
+        IReadOnlyList<IEdge> Edges { get; set; }
+        IReadOnlyDictionary<INode, IEdge> OutgoingEdge { get; set; }
+        IReadOnlyDictionary<INode, IEdge> IncomingEdge { get; set; }
 
         void AddNode(INode node);
         void AddEdge(IEdge edge);
