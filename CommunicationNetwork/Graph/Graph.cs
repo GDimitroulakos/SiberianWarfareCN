@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualBasic;
 
 namespace CommunicationNetwork.Graph {
 
@@ -23,50 +24,69 @@ namespace CommunicationNetwork.Graph {
 
     /// <summary>
     /// ===Purpose=== : The graph storage interface provides methods for
-    /// storing, creating graphs and modifying graphs.
+    /// storing, creating graphs and modifying graphs. It represents classes
+    /// that store the graph data in a specific way, such as an adjacency list 
     /// </summary>
     public interface IGraphStorage{
-        IReadOnlyList<INode> Nodes { get; set; }
-        IReadOnlyList<IEdge> Edges { get; set; }
-        IReadOnlyDictionary<INode, IEdge> OutgoingEdge { get; set; }
-        IReadOnlyDictionary<INode, IEdge> IncomingEdge { get; set; }
+        IReadOnlyList<INode> Nodes { get;  }
+        IReadOnlyList<IEdge> Edges { get; }
+        IReadOnlyDictionary<INode, IEdge> OutgoingEdge { get;  }
+        IReadOnlyDictionary<INode, IEdge> IncomingEdge { get;  }
 
         void AddNode(INode node);
         void AddEdge(IEdge edge);
         void RemoveNode(INode node);
         void RemoveEdge(IEdge edge);
+        bool HasEdge(IEdge edge);
+        bool HasNode(INode node);
         bool AreConnected(INode source, INode target);
     }
+    
+    public class AdjacencyListStorage : IGraphStorage {
+        public IReadOnlyList<INode> Nodes => nodes.AsReadOnly(); 
+        public IReadOnlyList<IEdge> Edges => edges.AsReadOnly();
+        public IReadOnlyDictionary<INode, IEdge> OutgoingEdge => outgoingEdge.AsReadOnly();
+        public IReadOnlyDictionary<INode, IEdge> IncomingEdge => incomingEdge.AsReadOnly();
 
-    public class AdjacencyListStorage : IGraphStorage{
-        public List<INode> Nodes { get; set; } = new List<INode>();
-        public List<IEdge> Edges { get; set; } = new List<IEdge>();
-        public Dictionary<INode, IEdge> OutgoingEdge { get; set; } = new Dictionary<INode, IEdge>();
-        public Dictionary<INode, IEdge> IncomingEdge { get; set; } = new Dictionary<INode, IEdge>();
+        List<INode> nodes = new List<INode>();
+        List<IEdge> edges = new List<IEdge>();
+        Dictionary<INode, IEdge> outgoingEdge = new Dictionary<INode, IEdge>();
+        Dictionary<INode, IEdge> incomingEdge = new Dictionary<INode, IEdge>();
+
         public void AddNode(INode node) {
-            Nodes.Add(node);
+            nodes.Add(node);
         }
         public void AddEdge(IEdge edge) {
-            Edges.Add(edge);
-            if (!OutgoingEdge.ContainsKey(edge.Source)) {
-                OutgoingEdge[edge.Source] = edge;
+            edges.Add(edge);
+            if (!outgoingEdge.ContainsKey(edge.Source)) {
+                outgoingEdge[edge.Source] = edge;
             }
-            if (!IncomingEdge.ContainsKey(edge.Target)) {
-                IncomingEdge[edge.Target] = edge;
+            if (!incomingEdge.ContainsKey(edge.Target)) {
+                incomingEdge[edge.Target] = edge;
             }
+        }
+        public bool HasNode(INode node) {
+            return nodes.Contains(node);
+        }
+        public bool HasEdge(IEdge edge) {
+            return edges.Contains(edge);
         }
         public void RemoveNode(INode node) {
-            Nodes.Remove(node);
-            OutgoingEdge.Remove(node);
-            IncomingEdge.Remove(node);
+            nodes.Remove(node);
+            outgoingEdge.Remove(node);
+            incomingEdge.Remove(node);
         }
         public void RemoveEdge(IEdge edge) {
-            Edges.Remove(edge);
-            OutgoingEdge.Remove(edge.Source);
-            IncomingEdge.Remove(edge.Target);
+            edges.Remove(edge);
+            outgoingEdge.Remove(edge.Source);
+            incomingEdge.Remove(edge.Target);
         }
         public bool AreConnected(INode source, INode target) {
-            return OutgoingEdge.ContainsKey(source) && IncomingEdge.ContainsKey(target);
+            if (!outgoingEdge.ContainsKey(source) || !incomingEdge.ContainsKey(target)) {
+                return false;
+            }
+            return outgoingEdge[source].Target == target &&
+                   incomingEdge[target].Source == source;
         }
     }
 
