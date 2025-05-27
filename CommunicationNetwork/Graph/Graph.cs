@@ -192,50 +192,30 @@ namespace CommunicationNetwork.Graph {
         }
 
         public void AddNode(INode node) {
-            if (node == null)
-                throw new ArgumentNullException(nameof(node));
             storage.AddNode(node);
         }
 
         public void AddEdge(IEdge edge) {
-            if (edge == null)
-                throw new ArgumentNullException(nameof(edge));
-            if (edge.Source == null || edge.Target == null)
-                throw new ArgumentException("Edge must have a valid source and target node.");
             storage.AddEdge(edge);
         }
 
         public void RemoveNode(INode node) {
-            if (node == null)
-                throw new ArgumentNullException(nameof(node));
             storage.RemoveNode(node);
         }
 
         public void RemoveEdge(IEdge edge) {
-            if (edge == null)
-                throw new ArgumentNullException(nameof(edge));
-            if (edge.Source == null || edge.Target == null)
-                throw new ArgumentException("Edge must have a valid source and target node.");
             storage.RemoveEdge(edge);
         }
 
         public virtual bool AreConnected(INode source, INode target) {
-            if (source == null || target == null)
-                throw new ArgumentNullException("Source and target nodes cannot be null.");
             return storage.AreConnected(source, target);
         }
 
         public bool HasNode(INode node) {
-            if (node == null)
-                throw new ArgumentNullException(nameof(node));
             return storage.HasNode(node);
         }
 
         public bool HasEdge(IEdge edge) {
-            if (edge == null)
-                throw new ArgumentNullException(nameof(edge));
-            if (edge.Source == null || edge.Target == null)
-                throw new ArgumentException("Edge must have a valid source and target node.");
             return storage.HasEdge(edge);
         }
 
@@ -261,26 +241,19 @@ namespace CommunicationNetwork.Graph {
         public IEnumerable<INode> GetNeighbors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
 
-            var neighbors = new HashSet<INode>();
-
-            // Add targets from outgoing edges
-            foreach (var edge in storage.GetOutgoingEdges(node)) {
-                neighbors.Add(edge.Target);
-            }
-
-            // Add sources from incoming edges (undirected interpretation)
-            foreach (var edge in storage.GetIncomingEdges(node)) {
-                neighbors.Add(edge.Source);
-            }
-
-            return neighbors; ;
+            var neighbors = storage.GetOutgoingEdges(node)
+                .Select(edge => edge.Target)
+                .Concat(storage.GetIncomingEdges(node).Select(edge => edge.Source))
+                .ToHashSet();
+          
+            return neighbors; 
         }
         public IEnumerable<IEdge> GetEdges(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
 
-            var edges = new List<IEdge>();
-            edges.AddRange(storage.GetOutgoingEdges(node));
-            edges.AddRange(storage.GetIncomingEdges(node));
+            var edges = storage.GetOutgoingEdges(node)
+                .Concat(storage.GetIncomingEdges(node))
+                .ToList();
 
             return edges;
         }
@@ -299,7 +272,7 @@ namespace CommunicationNetwork.Graph {
 
     public class DirectedGraph : BaseGraph, IDirectedGraph {
 
-        public DirectedGraph(IGraphStorage storage) : base(storage) {
+        public DirectedGraph(IGraphStorage storage, string name=null) : base(storage,name) {
         }
 
         public IEnumerable<INode> GetPredecessors(INode node) {
