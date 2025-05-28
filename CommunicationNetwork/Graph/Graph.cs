@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.VisualBasic;
+using System.Threading;
 
 namespace CommunicationNetwork.Graph {
 
@@ -24,8 +25,6 @@ namespace CommunicationNetwork.Graph {
         IReadOnlyList<INode> Nodes { get; }
         IReadOnlyList<IEdge> Edges { get; }
 
-        IReadOnlyList<IEdge> GetOutgoingEdges(INode node);
-        IReadOnlyList<IEdge> GetIncomingEdges(INode node);
         void AddNode(INode node);
         void AddEdge(IEdge edge);
         void RemoveNode(INode node);
@@ -33,6 +32,16 @@ namespace CommunicationNetwork.Graph {
         bool HasEdge(IEdge edge);
         bool HasNode(INode node);
         bool AreConnected(INode source, INode target);
+    }
+
+    public interface IDirectedGraphStorage : IGraphStorage {
+        IReadOnlyList<IEdge> GetOutgoingEdges(INode node);
+        IReadOnlyList<IEdge> GetIncomingEdges(INode node);
+    }
+
+    public interface IUndirectedGraphStorage : IGraphStorage {
+        IReadOnlyList<IEdge> GetEdges(INode node);
+        IReadOnlyList<INode> GetNeighbors(INode node);
     }
 
     // <summary>
@@ -46,52 +55,16 @@ namespace CommunicationNetwork.Graph {
 
         List<INode> nodes = new List<INode>();
         List<IEdge> edges = new List<IEdge>();
-        Dictionary<INode, List<IEdge>> outgoingEdge = new Dictionary<INode, List<IEdge>>();
-        Dictionary<INode, List<IEdge>> incomingEdge = new Dictionary<INode, List<IEdge>>();
 
-        public IReadOnlyList<IEdge> GetOutgoingEdges(INode node) {
+        public virtual void AddNode(INode node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
-            }
-            else if(!nodes.Contains(node)) // Check if the node exists in the graph
-            {
-                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            }
-            else if (!outgoingEdge.ContainsKey(node)) { // Check if the node data in the graph are consistent
-                throw new ArgumentException("Inconsisent graph state. Uninitialize list of Outgoing edges",
-                    nameof(node));
-            }
-            // Return the outgoing edges for the node
-            return outgoingEdge[node].AsReadOnly();
-        }
-
-        public IReadOnlyList<IEdge> GetIncomingEdges(INode node) {
-            if (node == null) {
-                throw new ArgumentNullException(nameof(node));
-            }
-            else if (!nodes.Contains(node)) {
-                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            }
-            else if (!incomingEdge.ContainsKey(node)) {
-                throw new ArgumentException("Inconsisent graph state. Uninitialize list of Incoming edges",
-                    nameof(node));
-            }
-            // Return the incoming edges for the node
-            return incomingEdge[node].AsReadOnly();
-        }
-
-        public void AddNode(INode node) {
-            if (node == null) { // Check for null node
-                throw new ArgumentNullException(nameof(node));
-            }
-            else if (nodes.Contains(node)) { // Check if the node already exists in the graph
+            } else if (nodes.Contains(node)) { // Check if the node already exists in the graph
                 throw new ArgumentException("Node already exists in the graph.", nameof(node));
             }
             nodes.Add(node); // Add the node to the list of nodes
-            outgoingEdge[node] = new List<IEdge>(); // Initialize the outgoing edges list for the node
-            incomingEdge[node] = new List<IEdge>(); // Initialize the incoming edges list for the node
         }
-        public void AddEdge(IEdge edge) {
+        public virtual void AddEdge(IEdge edge) {
             if (edge == null) { // Check for null edge
                 throw new ArgumentNullException(nameof(edge));
             } else if (edges.Contains(edge)) { // Check if the edge already exists in the graph
@@ -104,55 +77,172 @@ namespace CommunicationNetwork.Graph {
                 throw new ArgumentException("Source or target node does not exist in the graph.", nameof(edge));
             }
             edges.Add(edge); // Add the edge to the list of edges
-            outgoingEdge[edge.Source].Add(edge); // Add the edge to the outgoing edges of the source node
-            incomingEdge[edge.Target].Add(edge); // Add the edge to the incoming edges of the target node
         }
 
-        public bool HasNode(INode node) {
+        public virtual bool HasNode(INode node) {
             return nodes.Contains(node);
         }
-        public bool HasEdge(IEdge edge) {
+        public virtual bool HasEdge(IEdge edge) {
             return edges.Contains(edge);
         }
-        public void RemoveNode(INode node) {
+        public virtual void RemoveNode(INode node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
             } else if (!nodes.Contains(node)) { // Check if the node exists in the graph
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             }
             nodes.Remove(node);
+        }
+        public virtual void RemoveEdge(IEdge edge) {
+            if (edge == null) { // Check for null edge
+                throw new ArgumentNullException(nameof(edge));
+            } else if (!edges.Contains(edge)) { // Check if the edge exists in the graph
+                throw new ArgumentException("Edge does not exist in the graph.", nameof(edge));
+            }
+            edges.Remove(edge); // Remove the edge from the list of edges
+        }
+
+        public virtual bool AreConnected(INode source, INode target) {
+            if (source == null || target == null)
+                throw new ArgumentNullException("Source and target nodes cannot be null.");
+            return edges.Any(edge => edge.Source.Equals(source) && edge.Target.Equals(target));
+        }
+    }
+
+    public class DirectedAdjacencyListStorage : AdjacencyListStorage, IDirectedGraphStorage {
+        Dictionary<INode, List<IEdge>> outgoingEdge = new Dictionary<INode, List<IEdge>>();
+        Dictionary<INode, List<IEdge>> incomingEdge = new Dictionary<INode, List<IEdge>>();
+
+        public IReadOnlyList<IEdge> GetOutgoingEdges(INode node) {
+            ValidateNodeExists(node);
+            // Return the outgoing edges for the node
+            return outgoingEdge[node].AsReadOnly();
+        }
+
+        public IReadOnlyList<IEdge> GetIncomingEdges(INode node) {
+            ValidateNodeExists(node);
+            // Return the incoming edges for the node
+            return incomingEdge[node].AsReadOnly();
+        }
+
+        public override void AddNode(INode node) {
+            base.AddNode(node);
+            outgoingEdge[node] = new List<IEdge>(); // Initialize the outgoing edges list for the node
+            incomingEdge[node] = new List<IEdge>(); // Initialize the incoming edges list for the node
+        }
+
+        public override void AddEdge(IEdge edge) {
+            base.AddEdge(edge);
+            outgoingEdge[edge.Source].Add(edge); // Add the edge to the outgoing edges of the source node
+            incomingEdge[edge.Target].Add(edge); // Add the edge to the incoming edges of the target node
+        }
+
+        public override void RemoveNode(INode node) {
+            base.RemoveNode(node);
             // Remove all outgoing edges associated with the node
             foreach (var edge in outgoingEdge[node]) { // Check for outgoing edges
                 incomingEdge[edge.Target].Remove(edge); // Remove the edge from the incoming edges of the target node
-                edges.Remove(edge); // Remove the edge from the list of edges
+                base.RemoveEdge(edge); // Remove the edge from the list of edges
             }
             outgoingEdge.Remove(node); // Remove the node from the outgoing edges dictionary
 
             // Remove all incoming edges associated with the node
             foreach (var edge in incomingEdge[node]) { // Check for incoming edges
                 outgoingEdge[edge.Source].Remove(edge); // Remove the edge from the outgoing edges of the source node
-                edges.Remove(edge); // Remove the edge from the list of edges
+                base.RemoveEdge(edge); // Remove the edge from the list of edges
             }
             incomingEdge.Remove(node); // Remove the node from the incoming edges dictionary
         }
-        public void RemoveEdge(IEdge edge) {
-            if (edge == null) { // Check for null edge
-                throw new ArgumentNullException(nameof(edge));
-            } else if (!edges.Contains(edge)) { // Check if the edge exists in the graph
-                throw new ArgumentException("Edge does not exist in the graph.", nameof(edge));
-            } 
-            edges.Remove(edge); // Remove the edge from the list of edges
+        public override void RemoveEdge(IEdge edge) {
+            base.RemoveEdge(edge);
             outgoingEdge[edge.Source].Remove(edge); // Remove the edge from the outgoing edges of the source node
             incomingEdge[edge.Target].Remove(edge); // Remove the edge from the incoming edges of the target node
         }
-        public bool AreConnected(INode source, INode target) {
-            if (source == null || target == null)
-                throw new ArgumentNullException("Source and target nodes cannot be null.");
-            if (!outgoingEdge.ContainsKey(source)) return false;
-            return outgoingEdge[source].Any(edge => edge.Target.Equals(target));
+        private void ValidateNodeExists(INode node) {
+            if (node == null) { // Check for null node
+                throw new ArgumentNullException(nameof(node));
+            } else if (!Nodes.Contains(node)){// Check if the node exists in the graph
+                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
+            } else if (!outgoingEdge.ContainsKey(node)) { // Check if the node data in the graph are consistent
+                throw new ArgumentException("Inconsisent graph state. Uninitialize list of Outgoing edges",
+                    nameof(node));
+            }
         }
     }
-    
+
+    public class UndirectedAdjacencyListStorage : AdjacencyListStorage, IUndirectedGraphStorage {
+        Dictionary<INode, List<IEdge>> edgesByNode = new Dictionary<INode, List<IEdge>>();
+
+        public IReadOnlyList<IEdge> GetEdges(INode node) {
+            ValidateNodeExists(node);
+            return edgesByNode[node].AsReadOnly();
+        }
+        // Alternative one-liner approach using LINQ Distinct()
+        public IReadOnlyList<INode> GetNeighbors(INode node) {
+            ValidateNodeExists(node);
+            return edgesByNode[node]
+                .Select(edge => edge.Source.Equals(node) ? edge.Target : edge.Source)
+                .Distinct() // ← This removes duplicates
+                .ToList()
+                .AsReadOnly();
+        }
+        public override void AddNode(INode node) {
+            base.AddNode(node);
+            edgesByNode[node] = new List<IEdge>(); // Initialize the edges list for the node
+        }
+        public override void AddEdge(IEdge edge) {
+            base.AddEdge(edge);
+            edgesByNode[edge.Source].Add(edge); // Add the edge to the source node's edges
+            edgesByNode[edge.Target].Add(edge); // Add the edge to the target node's edges
+        }
+        public override void RemoveNode(INode node) {
+            ValidateNodeExists(node);
+
+            // Create a copy to avoid modification during iteration
+            var edgesToRemove = new List<IEdge>(edgesByNode[node]);
+
+            foreach (var edge in edgesToRemove) {
+                RemoveEdge(edge); // Use RemoveEdge method to handle cleanup properly
+            }
+            edgesByNode.Remove(node);
+            base.RemoveNode(node);
+        }
+        public override void RemoveEdge(IEdge edge) {
+            ValidateEdgeExists(edge);
+            base.RemoveEdge(edge);
+            edgesByNode[edge.Source].Remove(edge); // Remove the edge from the source node's edges
+            edgesByNode[edge.Target].Remove(edge); // Remove the edge from the target node's edges
+        }
+        public override bool AreConnected(INode source, INode target) {
+            if (source == null || target == null)
+                throw new ArgumentNullException("Source and target nodes cannot be null.");
+
+            // Check if nodes are neighbors (more efficient than scanning all edges)
+            return edgesByNode.ContainsKey(source) &&
+                   edgesByNode[source].Any(edge =>
+                       (edge.Source.Equals(source) && edge.Target.Equals(target)) ||
+                       (edge.Source.Equals(target) && edge.Target.Equals(source))
+                   );
+        }
+
+        private void ValidateNodeExists(INode node) {
+            if (node == null) {
+                throw new ArgumentNullException(nameof(node));
+            } else if (!Nodes.Contains(node)) {
+                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
+            } else if (!edgesByNode.ContainsKey(node)) {
+                throw new ArgumentException("Inconsisent graph state. Uninitialize list of Edges", nameof(node));
+            }
+        }
+        private void ValidateEdgeExists(IEdge edge) {
+            if (edge == null) {
+                throw new ArgumentNullException(nameof(edge));
+            } else if (!Edges.Contains(edge)) {
+                throw new ArgumentException("Edge does not exist in the graph.", nameof(edge));
+            }
+        }
+    }
+
     public interface IGraph {
         /// <summary>
         /// ===Purpose=== : Provides access to methods for adding and removing nodes and edges,
@@ -186,7 +276,7 @@ namespace CommunicationNetwork.Graph {
 
         protected BaseGraph(IGraphStorage storage, string name = null) {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            SerialNumber = serialCounter++;
+            SerialNumber = Interlocked.Increment(ref serialCounter);
             Name = name ?? $"{GetType().Name}_{SerialNumber}";
             MetaData = new Dictionary<string, object>();
         }
@@ -218,8 +308,6 @@ namespace CommunicationNetwork.Graph {
         public bool HasEdge(IEdge edge) {
             return storage.HasEdge(edge);
         }
-
-
     }
 
     public interface IDirectedGraph : IGraph {
@@ -235,27 +323,24 @@ namespace CommunicationNetwork.Graph {
     }
 
     public class UnDirectedGraph : BaseGraph, IUndirectedGraph {
+        readonly IUndirectedGraphStorage undirectedStorage;
 
-        public UnDirectedGraph(IGraphStorage storage, string name = null) : base(storage, name) {
+        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) : base(storage, name) {
+            undirectedStorage = storage ;
         }
         public IEnumerable<INode> GetNeighbors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
-
-            var neighbors = storage.GetOutgoingEdges(node)
-                .Select(edge => edge.Target)
-                .Concat(storage.GetIncomingEdges(node).Select(edge => edge.Source))
-                .ToHashSet();
-          
-            return neighbors; 
+            if (!storage.HasNode(node))
+                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
+            // Use the IUndirectedGraphStorage interface to get neighbors
+            return undirectedStorage.GetNeighbors(node);
         }
         public IEnumerable<IEdge> GetEdges(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
-
-            var edges = storage.GetOutgoingEdges(node)
-                .Concat(storage.GetIncomingEdges(node))
-                .ToList();
-
-            return edges;
+            if (!storage.HasNode(node))
+                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
+            // Use the IUndirectedGraphStorage interface to get edges
+            return undirectedStorage.GetEdges(node);
         }
 
         // Override AreConnected for undirected behavior
@@ -271,36 +356,48 @@ namespace CommunicationNetwork.Graph {
     }
 
     public class DirectedGraph : BaseGraph, IDirectedGraph {
+        IDirectedGraphStorage directedStorage;
 
-        public DirectedGraph(IGraphStorage storage, string name=null) : base(storage,name) {
+        public DirectedGraph(IDirectedGraphStorage storage, string name = null) : base(storage, name) {
+            directedStorage = storage ;
         }
 
-        public IEnumerable<INode> GetPredecessors(INode node) {
-            if (node == null) throw new ArgumentNullException(nameof(node));
-            if (!storage.HasNode(node))
-                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            return storage.GetIncomingEdges(node).Select(edge => edge.Source);
-        }
-
+        // Update your DirectedGraph.GetSuccessors method
         public IEnumerable<INode> GetSuccessors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            return storage.GetOutgoingEdges(node).Select(edge => edge.Target);
+
+            // Return distinct successor nodes (remove duplicates)
+            return directedStorage.GetOutgoingEdges(node)
+                .Select(edge => edge.Target)
+                .Distinct(); // ← This fixes the issue
+        }
+
+        // Similarly, fix GetPredecessors method
+        public IEnumerable<INode> GetPredecessors(INode node) {
+            if (node == null) throw new ArgumentNullException(nameof(node));
+            if (!storage.HasNode(node))
+                throw new ArgumentException("Node does not exist in the graph.", nameof(node));
+
+            // Return distinct predecessor nodes (remove duplicates)
+            return directedStorage.GetIncomingEdges(node)
+                .Select(edge => edge.Source)
+                .Distinct(); // ← Also fix this one
         }
 
         public IEnumerable<IEdge> GetOutgoingEdges(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            return storage.GetOutgoingEdges(node);
+            return directedStorage.GetOutgoingEdges(node);
         }
 
         public IEnumerable<IEdge> GetIncomingEdges(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
-            return storage.GetIncomingEdges(node);
+            return directedStorage.GetIncomingEdges(node);
         }
 
     }

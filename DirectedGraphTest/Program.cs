@@ -3,675 +3,714 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CommunicationNetwork.Graph;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CommunicationNetwork.Graph.Tests {
 
     [TestClass]
     public class DirectedGraphTests {
-
-        private DirectedGraph _graph;
-        private IGraphStorage _storage;
-        private INode _nodeA;
-        private INode _nodeB;
-        private INode _nodeC;
-        private INode _nodeD;
-        private IEdge _edgeAB;
-        private IEdge _edgeBC;
-        private IEdge _edgeCA;
-        private IEdge _edgeAD;
+        private DirectedGraph graph;
+        private DirectedAdjacencyListStorage storage;
+        private Node<int> node1;
+        private Node<int> node2;
+        private Node<int> node3;
+        private Node<int> node4;
+        private Edge<string> edge1;
+        private Edge<string> edge2;
+        private Edge<string> edge3;
 
         [TestInitialize]
         public void Setup() {
-            _storage = new AdjacencyListStorage();
-            _graph = new DirectedGraph(_storage);
+            storage = new DirectedAdjacencyListStorage();
+            graph = new DirectedGraph(storage);
 
-            // Create test nodes
-            _nodeA = new Node<string> { Value = "A" };
-            _nodeB = new Node<string> { Value = "B" };
-            _nodeC = new Node<string> { Value = "C" };
-            _nodeD = new Node<string> { Value = "D" };
+            node1 = new Node<int>();
+            node2 = new Node<int>();
+            node3 = new Node<int>();
+            node4 = new Node<int>();
+        }
 
-            // Create test edges
-            _edgeAB = new Edge<string>(_nodeA, _nodeB) { Value = "A->B" };
-            _edgeBC = new Edge<string>(_nodeB, _nodeC) { Value = "B->C" };
-            _edgeCA = new Edge<string>(_nodeC, _nodeA) { Value = "C->A" };
-            _edgeAD = new Edge<string>(_nodeA, _nodeD) { Value = "A->D" };
+        private void SetupComplexGraph() {
+            // Create a complex directed graph:
+            // node1 -> node2 -> node3
+            //   |               ^
+            //   v               |
+            // node4 ------------+
+
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
+            graph.AddNode(node4);
+
+            edge1 = new Edge<string>(node1, node2);
+            edge2 = new Edge<string>(node2, node3);
+            edge3 = new Edge<string>(node1, node4);
+            var edge4 = new Edge<string>(node4, node3);
+
+            graph.AddEdge(edge1);
+            graph.AddEdge(edge2);
+            graph.AddEdge(edge3);
+            graph.AddEdge(edge4);
         }
 
         #region Constructor Tests
-
         [TestMethod]
-        public void Constructor_ValidStorage_CreatesDirectedGraph() {
-            // Arrange
-            var storage = new AdjacencyListStorage();
-
+        public void Constructor_ValidStorage_ShouldCreateGraph() {
             // Act
-            var graph = new DirectedGraph(storage);
+            var testGraph = new DirectedGraph(storage);
 
             // Assert
-            Assert.IsNotNull(graph);
-            Assert.AreEqual(0, graph.NodeCount);
-            Assert.AreEqual(0, graph.EdgeCount);
-            Assert.IsTrue(graph.IsEmpty);
+            Assert.IsNotNull(testGraph);
+            Assert.AreEqual(0, testGraph.NodeCount);
+            Assert.AreEqual(0, testGraph.EdgeCount);
+            Assert.IsTrue(testGraph.IsEmpty);
+        }
+
+        [TestMethod]
+        public void Constructor_WithName_ShouldSetName() {
+            // Act
+            var testGraph = new DirectedGraph(storage, "TestGraph");
+
+            // Assert
+            Assert.AreEqual("TestGraph", testGraph.Name);
+        }
+
+        [TestMethod]
+        public void Constructor_WithoutName_ShouldGenerateDefaultName() {
+            // Act
+            var testGraph = new DirectedGraph(storage);
+
+            // Assert
+            Assert.IsTrue(testGraph.Name.StartsWith("DirectedGraph_"));
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void Constructor_NullStorage_ThrowsArgumentNullException() {
+        public void Constructor_NullStorage_ShouldThrowArgumentNullException() {
             // Act
             new DirectedGraph(null);
         }
-
-        [TestMethod]
-        public void Constructor_WithNamedStorage_SetsCorrectName() {
-            // Arrange
-            var storage = new AdjacencyListStorage();
-
-            // Act
-            var graph = new DirectedGraph(storage, "TestGraph");
-
-            // Assert
-            Assert.AreEqual("TestGraph", graph.Name);
-        }
-
         #endregion
 
-        #region Node Operations Tests
-
+        #region Basic Graph Operations Tests
         [TestMethod]
-        public void AddNode_ValidNode_NodeIsAdded() {
+        public void AddNode_ValidNode_ShouldAddSuccessfully() {
             // Act
-            _graph.AddNode(_nodeA);
+            graph.AddNode(node1);
 
             // Assert
-            Assert.IsTrue(_graph.HasNode(_nodeA));
-            Assert.AreEqual(1, _graph.NodeCount);
+            Assert.IsTrue(graph.HasNode(node1));
+            Assert.AreEqual(1, graph.NodeCount);
+            Assert.IsFalse(graph.IsEmpty);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void AddNode_NullNode_ThrowsArgumentNullException() {
-            // Act
-            _graph.AddNode(null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void AddNode_DuplicateNode_ThrowsArgumentException() {
+        public void AddEdge_ValidEdge_ShouldAddSuccessfully() {
             // Arrange
-            _graph.AddNode(_nodeA);
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
 
             // Act
-            _graph.AddNode(_nodeA);
-        }
-
-        [TestMethod]
-        public void RemoveNode_ExistingNode_NodeIsRemoved() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddEdge(_edgeAB);
-
-            // Act
-            _graph.RemoveNode(_nodeA);
+            graph.AddEdge(edge);
 
             // Assert
-            Assert.IsFalse(_graph.HasNode(_nodeA));
-            Assert.IsFalse(_graph.HasEdge(_edgeAB)); // Edge should be removed too
-            Assert.IsTrue(_graph.HasNode(_nodeB));
-            Assert.AreEqual(1, _graph.NodeCount);
+            Assert.IsTrue(graph.HasEdge(edge));
+            Assert.AreEqual(1, graph.EdgeCount);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void RemoveNode_NullNode_ThrowsArgumentNullException() {
-            // Act
-            _graph.RemoveNode(null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void RemoveNode_NonExistentNode_ThrowsArgumentException() {
-            // Act
-            _graph.RemoveNode(_nodeA);
-        }
-
-        [TestMethod]
-        public void HasNode_ExistingNode_ReturnsTrue() {
+        public void RemoveNode_ValidNode_ShouldRemoveSuccessfully() {
             // Arrange
-            _graph.AddNode(_nodeA);
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
 
-            // Act & Assert
-            Assert.IsTrue(_graph.HasNode(_nodeA));
+            // Act
+            graph.RemoveNode(node1);
+
+            // Assert
+            Assert.IsFalse(graph.HasNode(node1));
+            Assert.IsFalse(graph.HasEdge(edge));
+            Assert.AreEqual(1, graph.NodeCount);
+            Assert.AreEqual(0, graph.EdgeCount);
         }
 
         [TestMethod]
-        public void HasNode_NonExistentNode_ReturnsFalse() {
-            // Act & Assert
-            Assert.IsFalse(_graph.HasNode(_nodeA));
-        }
+        public void RemoveEdge_ValidEdge_ShouldRemoveSuccessfully() {
+            // Arrange
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
 
-        [TestMethod]
-        public void HasNode_NullNode_ReturnsFalse() {
-            // Act & Assert
-            Assert.IsFalse(_graph.HasNode(null));
-        }
+            // Act
+            graph.RemoveEdge(edge);
 
+            // Assert
+            Assert.IsFalse(graph.HasEdge(edge));
+            Assert.AreEqual(0, graph.EdgeCount);
+            Assert.AreEqual(2, graph.NodeCount); // Nodes should remain
+        }
         #endregion
 
-        #region Edge Operations Tests
+        #region AreConnected Tests
+        [TestMethod]
+        public void AreConnected_DirectlyConnectedNodes_ShouldReturnTrue() {
+            // Arrange
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
+
+            // Act & Assert
+            Assert.IsTrue(graph.AreConnected(node1, node2));
+        }
 
         [TestMethod]
-        public void AddEdge_ValidEdge_EdgeIsAdded() {
+        public void AreConnected_NotConnectedNodes_ShouldReturnFalse() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
 
-            // Act
-            _graph.AddEdge(_edgeAB);
+            // Act & Assert - Directed graph, so reverse direction should be false
+            Assert.IsFalse(graph.AreConnected(node2, node1));
+        }
 
-            // Assert
-            Assert.IsTrue(_graph.HasEdge(_edgeAB));
-            Assert.AreEqual(1, _graph.EdgeCount);
+        [TestMethod]
+        public void AreConnected_IndirectlyConnectedNodes_ShouldReturnFalse() {
+            // Arrange
+            SetupComplexGraph();
+
+            // Act & Assert - Not directly connected
+            Assert.IsFalse(graph.AreConnected(node1, node3));
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void AddEdge_NullEdge_ThrowsArgumentNullException() {
+        public void AreConnected_NullSource_ShouldThrowArgumentNullException() {
             // Act
-            _graph.AddEdge(null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void AddEdge_DuplicateEdge_ThrowsArgumentException() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddEdge(_edgeAB);
-
-            // Act
-            _graph.AddEdge(_edgeAB);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void AddEdge_SourceNodeNotInGraph_ThrowsArgumentException() {
-            // Arrange
-            _graph.AddNode(_nodeB); // Only add target node
-
-            // Act
-            _graph.AddEdge(_edgeAB); // Source node A is not in graph
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void AddEdge_TargetNodeNotInGraph_ThrowsArgumentException() {
-            // Arrange
-            _graph.AddNode(_nodeA); // Only add source node
-
-            // Act
-            _graph.AddEdge(_edgeAB); // Target node B is not in graph
-        }
-
-        [TestMethod]
-        public void RemoveEdge_ExistingEdge_EdgeIsRemoved() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddEdge(_edgeAB);
-
-            // Act
-            _graph.RemoveEdge(_edgeAB);
-
-            // Assert
-            Assert.IsFalse(_graph.HasEdge(_edgeAB));
-            Assert.AreEqual(0, _graph.EdgeCount);
-            Assert.IsTrue(_graph.HasNode(_nodeA)); // Nodes should remain
-            Assert.IsTrue(_graph.HasNode(_nodeB));
+            graph.AreConnected(null, node2);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void RemoveEdge_NullEdge_ThrowsArgumentNullException() {
+        public void AreConnected_NullTarget_ShouldThrowArgumentNullException() {
             // Act
-            _graph.RemoveEdge(null);
+            graph.AreConnected(node1, null);
         }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void RemoveEdge_NonExistentEdge_ThrowsArgumentException() {
-            // Act
-            _graph.RemoveEdge(_edgeAB);
-        }
-
         #endregion
 
-        #region DirectedGraph Specific Tests
-
+        #region GetPredecessors Tests
         [TestMethod]
-        public void GetSuccessors_NodeWithSuccessors_ReturnsCorrectNodes() {
+        public void GetPredecessors_NodeWithPredecessors_ShouldReturnCorrectNodes() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeD);
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeAD);
+            SetupComplexGraph();
 
             // Act
-            var successors = _graph.GetSuccessors(_nodeA).ToList();
+            var predecessors = graph.GetPredecessors(node3).ToList();
 
             // Assert
-            Assert.AreEqual(2, successors.Count);
-            Assert.IsTrue(successors.Contains(_nodeB));
-            Assert.IsTrue(successors.Contains(_nodeD));
+            Assert.AreEqual(2, predecessors.Count);
+            Assert.IsTrue(predecessors.Contains(node2));
+            Assert.IsTrue(predecessors.Contains(node4));
         }
 
         [TestMethod]
-        public void GetSuccessors_NodeWithNoSuccessors_ReturnsEmptyCollection() {
+        public void GetPredecessors_NodeWithNoPredecessors_ShouldReturnEmptyCollection() {
             // Arrange
-            _graph.AddNode(_nodeA);
+            SetupComplexGraph();
 
             // Act
-            var successors = _graph.GetSuccessors(_nodeA).ToList();
-
-            // Assert
-            Assert.AreEqual(0, successors.Count);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void GetSuccessors_NullNode_ThrowsArgumentNullException() {
-            // Act
-            _graph.GetSuccessors(null);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void GetSuccessors_NonExistentNode_ThrowsArgumentException() {
-            // Act
-            _graph.GetSuccessors(_nodeA);
-        }
-
-        [TestMethod]
-        public void GetPredecessors_NodeWithPredecessors_ReturnsCorrectNodes() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeC);
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeCA);
-
-            // Act
-            var predecessors = _graph.GetPredecessors(_nodeA).ToList();
-
-            // Assert
-            Assert.AreEqual(1, predecessors.Count);
-            Assert.IsTrue(predecessors.Contains(_nodeC));
-        }
-
-        [TestMethod]
-        public void GetPredecessors_NodeWithNoPredecessors_ReturnsEmptyCollection() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-
-            // Act
-            var predecessors = _graph.GetPredecessors(_nodeA).ToList();
+            var predecessors = graph.GetPredecessors(node1).ToList();
 
             // Assert
             Assert.AreEqual(0, predecessors.Count);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void GetPredecessors_NullNode_ThrowsArgumentNullException() {
+        public void GetPredecessors_SinglePredecessor_ShouldReturnCorrectNode() {
+            // Arrange
+            SetupComplexGraph();
+
             // Act
-            _graph.GetPredecessors(null);
+            var predecessors = graph.GetPredecessors(node2).ToList();
+
+            // Assert
+            Assert.AreEqual(1, predecessors.Count);
+            Assert.IsTrue(predecessors.Contains(node1));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetPredecessors_NullNode_ShouldThrowArgumentNullException() {
+            // Act
+            graph.GetPredecessors(null);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void GetPredecessors_NonExistentNode_ThrowsArgumentException() {
+        public void GetPredecessors_NodeNotInGraph_ShouldThrowArgumentException() {
             // Act
-            _graph.GetPredecessors(_nodeA);
+            graph.GetPredecessors(node1);
+        }
+        #endregion
+
+        #region GetSuccessors Tests
+        [TestMethod]
+        public void GetSuccessors_NodeWithSuccessors_ShouldReturnCorrectNodes() {
+            // Arrange
+            SetupComplexGraph();
+
+            // Act
+            var successors = graph.GetSuccessors(node1).ToList();
+
+            // Assert
+            Assert.AreEqual(2, successors.Count);
+            Assert.IsTrue(successors.Contains(node2));
+            Assert.IsTrue(successors.Contains(node4));
         }
 
         [TestMethod]
-        public void GetOutgoingEdges_NodeWithOutgoingEdges_ReturnsCorrectEdges() {
+        public void GetSuccessors_NodeWithNoSuccessors_ShouldReturnEmptyCollection() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeD);
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeAD);
+            SetupComplexGraph();
 
             // Act
-            var outgoingEdges = _graph.GetOutgoingEdges(_nodeA).ToList();
+            var successors = graph.GetSuccessors(node3).ToList();
+
+            // Assert
+            Assert.AreEqual(0, successors.Count);
+        }
+
+        [TestMethod]
+        public void GetSuccessors_SingleSuccessor_ShouldReturnCorrectNode() {
+            // Arrange
+            SetupComplexGraph();
+
+            // Act
+            var successors = graph.GetSuccessors(node2).ToList();
+
+            // Assert
+            Assert.AreEqual(1, successors.Count);
+            Assert.IsTrue(successors.Contains(node3));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetSuccessors_NullNode_ShouldThrowArgumentNullException() {
+            // Act
+            graph.GetSuccessors(null);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void GetSuccessors_NodeNotInGraph_ShouldThrowArgumentException() {
+            // Act
+            graph.GetSuccessors(node1);
+        }
+        #endregion
+
+        #region GetOutgoingEdges Tests
+        [TestMethod]
+        public void GetOutgoingEdges_NodeWithOutgoingEdges_ShouldReturnCorrectEdges() {
+            // Arrange
+            SetupComplexGraph();
+
+            // Act
+            var outgoingEdges = graph.GetOutgoingEdges(node1).ToList();
 
             // Assert
             Assert.AreEqual(2, outgoingEdges.Count);
-            Assert.IsTrue(outgoingEdges.Contains(_edgeAB));
-            Assert.IsTrue(outgoingEdges.Contains(_edgeAD));
+            Assert.IsTrue(outgoingEdges.Contains(edge1));
+            Assert.IsTrue(outgoingEdges.Contains(edge3));
         }
 
         [TestMethod]
-        public void GetOutgoingEdges_NodeWithNoOutgoingEdges_ReturnsEmptyCollection() {
+        public void GetOutgoingEdges_NodeWithNoOutgoingEdges_ShouldReturnEmptyCollection() {
             // Arrange
-            _graph.AddNode(_nodeA);
+            SetupComplexGraph();
 
             // Act
-            var outgoingEdges = _graph.GetOutgoingEdges(_nodeA).ToList();
+            var outgoingEdges = graph.GetOutgoingEdges(node3).ToList();
 
             // Assert
             Assert.AreEqual(0, outgoingEdges.Count);
         }
 
         [TestMethod]
-        public void GetIncomingEdges_NodeWithIncomingEdges_ReturnsCorrectEdges() {
+        public void GetOutgoingEdges_SingleOutgoingEdge_ShouldReturnCorrectEdge() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeC);
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeCA);
+            SetupComplexGraph();
 
             // Act
-            var incomingEdges = _graph.GetIncomingEdges(_nodeA).ToList();
+            var outgoingEdges = graph.GetOutgoingEdges(node2).ToList();
 
             // Assert
-            Assert.AreEqual(1, incomingEdges.Count);
-            Assert.IsTrue(incomingEdges.Contains(_edgeCA));
+            Assert.AreEqual(1, outgoingEdges.Count);
+            Assert.IsTrue(outgoingEdges.Contains(edge2));
         }
 
         [TestMethod]
-        public void GetIncomingEdges_NodeWithNoIncomingEdges_ReturnsEmptyCollection() {
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetOutgoingEdges_NullNode_ShouldThrowArgumentNullException() {
+            // Act
+            graph.GetOutgoingEdges(null);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void GetOutgoingEdges_NodeNotInGraph_ShouldThrowArgumentException() {
+            // Act
+            graph.GetOutgoingEdges(node1);
+        }
+        #endregion
+
+        #region GetIncomingEdges Tests
+        [TestMethod]
+        public void GetIncomingEdges_NodeWithIncomingEdges_ShouldReturnCorrectEdges() {
             // Arrange
-            _graph.AddNode(_nodeA);
+            SetupComplexGraph();
 
             // Act
-            var incomingEdges = _graph.GetIncomingEdges(_nodeA).ToList();
+            var incomingEdges = graph.GetIncomingEdges(node3).ToList();
+
+            // Assert
+            Assert.AreEqual(2, incomingEdges.Count);
+            Assert.IsTrue(incomingEdges.Contains(edge2));
+            // Should also contain the edge from node4 to node3
+            Assert.IsTrue(incomingEdges.Any(e => e.Source == node4 && e.Target == node3));
+        }
+
+        [TestMethod]
+        public void GetIncomingEdges_NodeWithNoIncomingEdges_ShouldReturnEmptyCollection() {
+            // Arrange
+            SetupComplexGraph();
+
+            // Act
+            var incomingEdges = graph.GetIncomingEdges(node1).ToList();
 
             // Assert
             Assert.AreEqual(0, incomingEdges.Count);
         }
 
-        #endregion
-
-        #region Connectivity Tests
-
         [TestMethod]
-        public void AreConnected_DirectlyConnectedNodes_ReturnsTrue() {
+        public void GetIncomingEdges_SingleIncomingEdge_ShouldReturnCorrectEdge() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddEdge(_edgeAB);
+            SetupComplexGraph();
 
-            // Act & Assert
-            Assert.IsTrue(_graph.AreConnected(_nodeA, _nodeB));
-        }
+            // Act
+            var incomingEdges = graph.GetIncomingEdges(node2).ToList();
 
-        [TestMethod]
-        public void AreConnected_NotConnectedNodes_ReturnsFalse() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeC);
-            _graph.AddEdge(_edgeAB);
-
-            // Act & Assert
-            Assert.IsFalse(_graph.AreConnected(_nodeA, _nodeC));
-            Assert.IsFalse(_graph.AreConnected(_nodeB, _nodeA)); // Direction matters in directed graph
-        }
-
-        [TestMethod]
-        public void AreConnected_SameNode_ReturnsFalse() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-
-            // Act & Assert
-            Assert.IsFalse(_graph.AreConnected(_nodeA, _nodeA));
+            // Assert
+            Assert.AreEqual(1, incomingEdges.Count);
+            Assert.IsTrue(incomingEdges.Contains(edge1));
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void AreConnected_NullSource_ThrowsArgumentNullException() {
+        public void GetIncomingEdges_NullNode_ShouldThrowArgumentNullException() {
             // Act
-            _graph.AreConnected(null, _nodeB);
+            graph.GetIncomingEdges(null);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
-        public void AreConnected_NullTarget_ThrowsArgumentNullException() {
+        [ExpectedException(typeof(ArgumentException))]
+        public void GetIncomingEdges_NodeNotInGraph_ShouldThrowArgumentException() {
             // Act
-            _graph.AreConnected(_nodeA, null);
+            graph.GetIncomingEdges(node1);
         }
-
         #endregion
 
-        #region Self-Loop Tests
-
+        #region Graph Properties Tests
         [TestMethod]
-        public void SelfLoop_AddSelfLoop_Works() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            var selfLoop = new Edge<string>(_nodeA, _nodeA) { Value = "A->A" };
-
-            // Act
-            _graph.AddEdge(selfLoop);
-
-            // Assert
-            Assert.IsTrue(_graph.HasEdge(selfLoop));
-            Assert.IsTrue(_graph.AreConnected(_nodeA, _nodeA));
-            Assert.IsTrue(_graph.GetSuccessors(_nodeA).Contains(_nodeA));
-            Assert.IsTrue(_graph.GetPredecessors(_nodeA).Contains(_nodeA));
-        }
-
-        #endregion
-
-        #region Complex Graph Tests
-
-        [TestMethod]
-        public void ComplexGraph_MultipleNodesAndEdges_AllOperationsWork() {
-            // Arrange - Create a directed cycle: A -> B -> C -> A, plus A -> D
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeC);
-            _graph.AddNode(_nodeD);
-
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeBC);
-            _graph.AddEdge(_edgeCA);
-            _graph.AddEdge(_edgeAD);
-
-            // Act & Assert - Test graph structure
-            Assert.AreEqual(4, _graph.NodeCount);
-            Assert.AreEqual(4, _graph.EdgeCount);
-
-            // Test A's connections
-            var aSuccessors = _graph.GetSuccessors(_nodeA).ToList();
-            Assert.AreEqual(2, aSuccessors.Count);
-            Assert.IsTrue(aSuccessors.Contains(_nodeB));
-            Assert.IsTrue(aSuccessors.Contains(_nodeD));
-
-            var aPredecessors = _graph.GetPredecessors(_nodeA).ToList();
-            Assert.AreEqual(1, aPredecessors.Count);
-            Assert.IsTrue(aPredecessors.Contains(_nodeC));
-
-            // Test connectivity
-            Assert.IsTrue(_graph.AreConnected(_nodeA, _nodeB));
-            Assert.IsTrue(_graph.AreConnected(_nodeB, _nodeC));
-            Assert.IsTrue(_graph.AreConnected(_nodeC, _nodeA));
-            Assert.IsTrue(_graph.AreConnected(_nodeA, _nodeD));
-
-            // Test non-connectivity (direction matters)
-            Assert.IsFalse(_graph.AreConnected(_nodeB, _nodeA));
-            Assert.IsFalse(_graph.AreConnected(_nodeD, _nodeA));
-        }
-
-        [TestMethod]
-        public void NodeRemoval_WithMultipleConnections_RemovesAllEdges() {
-            // Arrange - Create graph where A is connected to multiple nodes
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddNode(_nodeC);
-            _graph.AddNode(_nodeD);
-
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(_edgeCA);
-            _graph.AddEdge(_edgeAD);
-
-            // Act
-            _graph.RemoveNode(_nodeA);
-
-            // Assert
-            Assert.IsFalse(_graph.HasNode(_nodeA));
-            Assert.IsFalse(_graph.HasEdge(_edgeAB));
-            Assert.IsFalse(_graph.HasEdge(_edgeCA));
-            Assert.IsFalse(_graph.HasEdge(_edgeAD));
-
-            // Other nodes should remain
-            Assert.IsTrue(_graph.HasNode(_nodeB));
-            Assert.IsTrue(_graph.HasNode(_nodeC));
-            Assert.IsTrue(_graph.HasNode(_nodeD));
-
-            Assert.AreEqual(3, _graph.NodeCount);
-            Assert.AreEqual(0, _graph.EdgeCount);
-        }
-
-        #endregion
-
-        #region Inheritance and Polymorphism Tests
-
-        [TestMethod]
-        public void InheritanceTest_DirectedGraphIsIGraph() {
+        public void NodeCount_EmptyGraph_ShouldReturnZero() {
             // Act & Assert
-            Assert.IsInstanceOfType(_graph, typeof(IGraph));
-            Assert.IsInstanceOfType(_graph, typeof(IDirectedGraph));
+            Assert.AreEqual(0, graph.NodeCount);
         }
 
         [TestMethod]
-        public void PolymorphismTest_UseAsIGraph() {
+        public void NodeCount_AfterAddingNodes_ShouldReturnCorrectCount() {
             // Arrange
-            IGraph graph = _graph;
-
-            // Act
-            graph.AddNode(_nodeA);
-            graph.AddNode(_nodeB);
-            graph.AddEdge(_edgeAB);
-
-            // Assert
-            Assert.IsTrue(graph.HasNode(_nodeA));
-            Assert.IsTrue(graph.HasEdge(_edgeAB));
-            Assert.IsTrue(graph.AreConnected(_nodeA, _nodeB));
-        }
-
-        [TestMethod]
-        public void PolymorphismTest_UseAsIDirectedGraph() {
-            // Arrange
-            IDirectedGraph directedGraph = _graph;
-            directedGraph.AddNode(_nodeA);
-            directedGraph.AddNode(_nodeB);
-            directedGraph.AddEdge(_edgeAB);
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
 
             // Act & Assert
-            Assert.AreEqual(1, directedGraph.GetSuccessors(_nodeA).Count());
-            Assert.AreEqual(1, directedGraph.GetPredecessors(_nodeB).Count());
-            Assert.AreEqual(1, directedGraph.GetOutgoingEdges(_nodeA).Count());
-            Assert.AreEqual(1, directedGraph.GetIncomingEdges(_nodeB).Count());
-        }
-
-        #endregion
-
-        #region Edge Cases and Error Conditions
-
-        [TestMethod]
-        public void EmptyGraph_AllQueryOperations_ReturnAppropriateValues() {
-            // Assert
-            Assert.AreEqual(0, _graph.NodeCount);
-            Assert.AreEqual(0, _graph.EdgeCount);
-            Assert.IsTrue(_graph.IsEmpty);
-            Assert.IsFalse(_graph.HasNode(_nodeA));
-            Assert.IsFalse(_graph.HasEdge(_edgeAB));
+            Assert.AreEqual(3, graph.NodeCount);
         }
 
         [TestMethod]
-        public void MultipleEdgesBetweenSameNodes_AllowedAndTracked() {
+        public void EdgeCount_EmptyGraph_ShouldReturnZero() {
+            // Act & Assert
+            Assert.AreEqual(0, graph.EdgeCount);
+        }
+
+        [TestMethod]
+        public void EdgeCount_AfterAddingEdges_ShouldReturnCorrectCount() {
             // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            var edgeAB2 = new Edge<string>(_nodeA, _nodeB) { Value = "A->B (second)" };
+            SetupComplexGraph();
+
+            // Act & Assert
+            Assert.AreEqual(4, graph.EdgeCount);
+        }
+
+        [TestMethod]
+        public void IsEmpty_EmptyGraph_ShouldReturnTrue() {
+            // Act & Assert
+            Assert.IsTrue(graph.IsEmpty);
+        }
+
+        [TestMethod]
+        public void IsEmpty_NonEmptyGraph_ShouldReturnFalse() {
+            // Arrange
+            graph.AddNode(node1);
+
+            // Act & Assert
+            Assert.IsFalse(graph.IsEmpty);
+        }
+
+        [TestMethod]
+        public void Name_ShouldBeSettable() {
+            // Act
+            graph.Name = "MyDirectedGraph";
+
+            // Assert
+            Assert.AreEqual("MyDirectedGraph", graph.Name);
+        }
+
+        [TestMethod]
+        public void SerialNumber_ShouldBeUnique() {
+            // Act
+            var graph1 = new DirectedGraph(new DirectedAdjacencyListStorage());
+            var graph2 = new DirectedGraph(new DirectedAdjacencyListStorage());
+
+            // Assert
+            Assert.AreNotEqual(graph1.SerialNumber, graph2.SerialNumber);
+        }
+
+        [TestMethod]
+        public void MetaData_ShouldBeInitializedAndModifiable() {
+            // Act
+            graph.MetaData["key1"] = "value1";
+            graph.MetaData["key2"] = 42;
+
+            // Assert
+            Assert.AreEqual("value1", graph.MetaData["key1"]);
+            Assert.AreEqual(42, graph.MetaData["key2"]);
+            Assert.AreEqual(2, graph.MetaData.Count);
+        }
+
+        [TestMethod]
+        public void ToString_ShouldReturnMeaningfulString() {
+            // Arrange
+            graph.Name = "TestGraph";
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
 
             // Act
-            _graph.AddEdge(_edgeAB);
-            _graph.AddEdge(edgeAB2);
-
-            // Assert
-            Assert.AreEqual(2, _graph.EdgeCount);
-            Assert.IsTrue(_graph.HasEdge(_edgeAB));
-            Assert.IsTrue(_graph.HasEdge(edgeAB2));
-
-            var outgoingEdges = _graph.GetOutgoingEdges(_nodeA).ToList();
-            Assert.AreEqual(2, outgoingEdges.Count);
-        }
-
-        [TestMethod]
-        public void ToString_ReturnsCorrectFormat() {
-            // Arrange
-            _graph.AddNode(_nodeA);
-            _graph.AddNode(_nodeB);
-            _graph.AddEdge(_edgeAB);
-
-            // Act
-            var result = _graph.ToString();
+            var result = graph.ToString();
 
             // Assert
             Assert.IsTrue(result.Contains("DirectedGraph"));
+            Assert.IsTrue(result.Contains("TestGraph"));
             Assert.IsTrue(result.Contains("Nodes: 2"));
             Assert.IsTrue(result.Contains("Edges: 1"));
         }
-
         #endregion
 
-        #region Performance Tests
-
+        #region Complex Scenarios Tests
         [TestMethod]
-        public void PerformanceTest_LargeGraph_AcceptablePerformance() {
+        public void ComplexScenario_SelfLoop_ShouldHandleCorrectly() {
             // Arrange
-            const int nodeCount = 1000;
-            var nodes = new List<Node<int>>();
+            graph.AddNode(node1);
+            var selfLoop = new Edge<string>(node1, node1);
+            graph.AddEdge(selfLoop);
 
-            // Create nodes
-            for (int i = 0; i < nodeCount; i++) {
-                var node = new Node<int> { Value = i };
-                nodes.Add(node);
-                _graph.AddNode(node);
-            }
-
-            // Create edges (linear chain)
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            for (int i = 0; i < nodeCount - 1; i++) {
-                var edge = new Edge<int>(nodes[i], nodes[i + 1]) { Value = i };
-                _graph.AddEdge(edge);
-            }
-            stopwatch.Stop();
-
-            // Assert
-            Assert.AreEqual(nodeCount, _graph.NodeCount);
-            Assert.AreEqual(nodeCount - 1, _graph.EdgeCount);
-
-            // Test query performance
-            stopwatch.Restart();
-            var successors = _graph.GetSuccessors(nodes[0]);
-            var predecessors = _graph.GetPredecessors(nodes[nodeCount - 1]);
-            stopwatch.Stop();
-
-            Assert.AreEqual(1, successors.Count());
-            Assert.AreEqual(1, predecessors.Count());
-
-            Console.WriteLine($"Large graph operations completed in {stopwatch.ElapsedMilliseconds}ms");
+            // Act & Assert
+            Assert.IsTrue(graph.AreConnected(node1, node1));
+            Assert.IsTrue(graph.GetSuccessors(node1).Contains(node1));
+            Assert.IsTrue(graph.GetPredecessors(node1).Contains(node1));
+            Assert.IsTrue(graph.GetOutgoingEdges(node1).Contains(selfLoop));
+            Assert.IsTrue(graph.GetIncomingEdges(node1).Contains(selfLoop));
         }
 
+        [TestMethod]
+        public void ComplexScenario_MultipleEdgesBetweenSameNodes_ShouldHandleCorrectly() {
+            // Arrange
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge1 = new Edge<string>(node1, node2);
+            var edge2 = new Edge<int>(node1, node2);
+            graph.AddEdge(edge1);
+            graph.AddEdge(edge2);
+
+            // Act
+            var outgoingEdges = graph.GetOutgoingEdges(node1).ToList();
+            var incomingEdges = graph.GetIncomingEdges(node2).ToList();
+            var successors = graph.GetSuccessors(node1).ToList();
+
+            // Assert
+            Assert.AreEqual(2, outgoingEdges.Count);
+            Assert.AreEqual(2, incomingEdges.Count);
+            Assert.AreEqual(1, successors.Count); // Only one unique successor
+            Assert.IsTrue(successors.Contains(node2));
+        }
+
+        [TestMethod]
+        public void ComplexScenario_CyclicGraph_ShouldHandleCorrectly() {
+            // Arrange - Create a cycle: node1 -> node2 -> node3 -> node1
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
+            var edge1 = new Edge<string>(node1, node2);
+            var edge2 = new Edge<string>(node2, node3);
+            var edge3 = new Edge<string>(node3, node1);
+            graph.AddEdge(edge1);
+            graph.AddEdge(edge2);
+            graph.AddEdge(edge3);
+
+            // Act & Assert
+            Assert.IsTrue(graph.AreConnected(node1, node2));
+            Assert.IsTrue(graph.AreConnected(node2, node3));
+            Assert.IsTrue(graph.AreConnected(node3, node1));
+
+            // Each node should have one predecessor and one successor
+            Assert.AreEqual(1, graph.GetPredecessors(node1).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(node1).Count());
+            Assert.AreEqual(1, graph.GetPredecessors(node2).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(node2).Count());
+            Assert.AreEqual(1, graph.GetPredecessors(node3).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(node3).Count());
+        }
+
+        [TestMethod]
+        public void ComplexScenario_RemoveNodeFromComplexGraph_ShouldMaintainConsistency() {
+            // Arrange
+            SetupComplexGraph();
+            var initialEdgeCount = graph.EdgeCount;
+
+            // Act - Remove node2 which is in the middle of the graph
+            graph.RemoveNode(node2);
+
+            // Assert
+            Assert.IsFalse(graph.HasNode(node2));
+            Assert.IsFalse(graph.HasEdge(edge1)); // edge1 was node1 -> node2
+            Assert.IsFalse(graph.HasEdge(edge2)); // edge2 was node2 -> node3
+
+            // Verify remaining nodes and edges are intact
+            Assert.IsTrue(graph.HasNode(node1));
+            Assert.IsTrue(graph.HasNode(node3));
+            Assert.IsTrue(graph.HasNode(node4));
+            Assert.IsTrue(graph.HasEdge(edge3)); // edge3 was node1 -> node4
+
+            // Verify successors/predecessors are updated
+            Assert.AreEqual(1, graph.GetSuccessors(node1).Count()); // Only node4 now
+            Assert.AreEqual(1, graph.GetPredecessors(node3).Count()); // Only node4 now
+        }
+
+        [TestMethod]
+        public void ComplexScenario_DAG_TopologicalProperties() {
+            // Arrange - Create a simple DAG (Directed Acyclic Graph)
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
+            graph.AddNode(node4);
+
+            // Create edges: node1 -> {node2, node3}, node2 -> node4, node3 -> node4
+            var edge1 = new Edge<string>(node1, node2);
+            var edge2 = new Edge<string>(node1, node3);
+            var edge3 = new Edge<string>(node2, node4);
+            var edge4 = new Edge<string>(node3, node4);
+
+            graph.AddEdge(edge1);
+            graph.AddEdge(edge2);
+            graph.AddEdge(edge3);
+            graph.AddEdge(edge4);
+
+            // Act & Assert - Verify DAG properties
+            // Source node (no predecessors)
+            Assert.AreEqual(0, graph.GetPredecessors(node1).Count());
+            Assert.AreEqual(2, graph.GetSuccessors(node1).Count());
+
+            // Sink node (no successors)
+            Assert.AreEqual(0, graph.GetSuccessors(node4).Count());
+            Assert.AreEqual(2, graph.GetPredecessors(node4).Count());
+
+            // Intermediate nodes
+            Assert.AreEqual(1, graph.GetPredecessors(node2).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(node2).Count());
+            Assert.AreEqual(1, graph.GetPredecessors(node3).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(node3).Count());
+        }
+        #endregion
+
+        #region Performance and Stress Tests
+        [TestMethod]
+        public void StressTest_LargeGraph_ShouldPerformReasonably() {
+            // Arrange - Create a graph with many nodes and edges
+            var nodes = new List<Node<int>>();
+            for (int i = 0; i < 100; i++) {
+                var node = new Node<int>();
+                nodes.Add(node);
+                graph.AddNode(node);
+            }
+
+            // Create edges to form a chain: node0 -> node1 -> node2 -> ... -> node99
+            for (int i = 0; i < 99; i++) {
+                var edge = new Edge<string>(nodes[i], nodes[i + 1]);
+                graph.AddEdge(edge);
+            }
+
+            // Act & Assert
+            Assert.AreEqual(100, graph.NodeCount);
+            Assert.AreEqual(99, graph.EdgeCount);
+
+            // Test that operations still work correctly
+            Assert.AreEqual(0, graph.GetPredecessors(nodes[0]).Count());
+            Assert.AreEqual(0, graph.GetSuccessors(nodes[99]).Count());
+            Assert.AreEqual(1, graph.GetSuccessors(nodes[50]).Count());
+            Assert.AreEqual(1, graph.GetPredecessors(nodes[50]).Count());
+        }
+        #endregion
+
+        #region Interface Compliance Tests
+        [TestMethod]
+        public void InterfaceCompliance_IDirectedGraph_ShouldImplementAllMethods() {
+            // Arrange
+            IDirectedGraph directedGraph = graph;
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
+
+            // Act & Assert - All interface methods should be accessible
+            Assert.IsNotNull(directedGraph.GetPredecessors(node2));
+            Assert.IsNotNull(directedGraph.GetSuccessors(node1));
+            Assert.IsNotNull(directedGraph.GetOutgoingEdges(node1));
+            Assert.IsNotNull(directedGraph.GetIncomingEdges(node2));
+        }
+
+        [TestMethod]
+        public void InterfaceCompliance_IGraph_ShouldImplementAllMethods() {
+            // Arrange
+            IGraph genericGraph = graph;
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            var edge = new Edge<string>(node1, node2);
+            graph.AddEdge(edge);
+
+            // Act & Assert - All base interface methods should be accessible
+            Assert.IsTrue(genericGraph.HasNode(node1));
+            Assert.IsTrue(genericGraph.HasEdge(edge));
+            Assert.IsTrue(genericGraph.AreConnected(node1, node2));
+            Assert.IsNotNull(genericGraph.Name);
+            Assert.IsNotNull(genericGraph.MetaData);
+        }
         #endregion
     }
 }

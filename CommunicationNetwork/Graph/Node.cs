@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CommunicationNetwork.Graph {
 
@@ -24,12 +25,12 @@ namespace CommunicationNetwork.Graph {
         public Dictionary<string, object> MetaData { get; }
 
         public int Serial => m_serialNumber;
-        public int m_serialNumber;
-        static int ms_TnodeCounter = 0;
+        public readonly int m_serialNumber;
+        private static int ms_TnodeCounter = 0;
 
         public Node() {
             Value = default(T);
-            m_serialNumber = ms_TnodeCounter++;
+            m_serialNumber = Interlocked.Increment(ref ms_TnodeCounter);
             Name = "Node_"+typeof(T).Name+"_"+m_serialNumber;
             Type = typeof(T);
             MetaData = new Dictionary<string, object>();

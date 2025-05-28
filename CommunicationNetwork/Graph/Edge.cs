@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CommunicationNetwork.Graph {
     public interface IEdge {
@@ -27,17 +28,17 @@ namespace CommunicationNetwork.Graph {
         public INode Target { get; }
         public int Serial => m_serialNumber; // Serial number is not needed for edges, as they are not uniquely identified by a serial number
 
-        public int m_serialNumber; // Serial number is not needed for edges, as they are not uniquely identified by a serial number
-        static int ms_TedgeCounter = 0;
+        public readonly int m_serialNumber; // Serial number is not needed for edges, as they are not uniquely identified by a serial number
+        private static int ms_TedgeCounter = 0;
 
         public Edge(INode source, INode target) {
             Value = default(T);
-            m_serialNumber = ms_TedgeCounter++;
+            m_serialNumber = Interlocked.Increment(ref ms_TedgeCounter);
             Name = "Edge" + typeof(T).Name + m_serialNumber;
             Type = typeof(T);
             MetaData = new Dictionary<string, object>();
-            Source = source ?? throw new ArgumentNullException();
-            Target = target ?? throw new ArgumentNullException();
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Target = target ?? throw new ArgumentNullException(nameof(target));
 
         }
     }
