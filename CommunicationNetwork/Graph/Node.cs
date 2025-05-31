@@ -7,33 +7,32 @@ using System.Threading;
 
 namespace CommunicationNetwork.Graph {
 
-    public interface INode {
-        string Name { get; }
-        Type Type { get; }
-        Dictionary<string, object> MetaData { get; }
-        int Serial { get; }
+    public interface INode : IGraphElement{
+
     }
 
     public interface INode<T> : INode {
         T Value { get; }
     }
 
-    public class Node<T> : INode<T> {
-        public T Value { get; set; }
-        public string Name { get; }
-        public Type Type { get; }
+    public class Node : INode {
+        public virtual string Name { get; }
         public Dictionary<string, object> MetaData { get; }
-
         public int Serial => m_serialNumber;
         public readonly int m_serialNumber;
         private static int ms_TnodeCounter = 0;
-
         public Node() {
-            Value = default(T);
             m_serialNumber = Interlocked.Increment(ref ms_TnodeCounter);
-            Name = "Node_"+typeof(T).Name+"_"+m_serialNumber;
-            Type = typeof(T);
+            Name = "Node_" + m_serialNumber;
             MetaData = new Dictionary<string, object>();
+        }
+    }
+
+    public class Node<T> : Node ,INode<T>{
+        public T Value { get; set; }
+        public override string Name => "Node_" + typeof(T).Name + "_" + m_serialNumber;
+        public Node() : base() {
+            Value = default(T);
         }
     }
 

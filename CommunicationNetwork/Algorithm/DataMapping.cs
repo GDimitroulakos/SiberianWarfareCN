@@ -50,4 +50,43 @@ namespace CommunicationNetwork.Algorithm {
             return algorithmInputToKey.ContainsKey(algorithmInput);
         }
     }
+
+    /// <summary>
+    /// ===PURPOSE=== Extended graph element interface with typed data access
+    /// 
+    /// 
+    /// 
+    /// 
+    /// </summary>
+    public static class GraphElementDataExtensions {
+
+        /// <summary>
+        /// Get typed data from graph element using key
+        /// 
+        /// YOUR REQUEST: "node.Info<DataType>(keys[ALGORITHM INPUT1])"
+        /// 
+        /// UTILIZATION: This IS the Info<DataType>() method you described.
+        /// Usage: node.Info<double>("road_capacity") returns typed data.
+        /// </summary>
+        public static T Info<T>(this IGraphElement element, string key) {
+            if (element.MetaData.TryGetValue(key, out var value) && value is T typedValue) {
+                return typedValue;
+            }
+            return default(T);
+        }
+
+        /// <summary>
+        /// Set typed data on graph element
+        /// </summary>
+        public static void SetInfo<T>(this IGraphElement element, string key, T value) {
+            element.MetaData[key] = value;
+        }
+
+        /// <summary>
+        /// Check if graph element has data for key
+        /// </summary>
+        public static bool HasInfo(this IGraphElement element, string key) {
+            return element.MetaData.ContainsKey(key);
+        }
+    }
 }

@@ -9,6 +9,12 @@ using System.Threading;
 
 namespace CommunicationNetwork.Graph {
 
+    public interface IGraphElement {
+        Dictionary<string, object> MetaData { get; }
+        string Name { get; }
+        int Serial { get; }
+    }
+
     /// <summary>
     /// ===Purpose=== : The graph storage interface provides methods for
     /// storing, creating graphs and modifying graphs. It represents classes
@@ -243,7 +249,7 @@ namespace CommunicationNetwork.Graph {
         }
     }
 
-    public interface IGraph {
+    public interface IGraph : IGraphElement {
         /// <summary>
         /// ===Purpose=== : Provides access to methods for adding and removing nodes and edges,
         /// and query the existence of nodes and edges in the graph. 
@@ -256,15 +262,18 @@ namespace CommunicationNetwork.Graph {
         bool HasNode(INode node);
         bool HasEdge(IEdge edge);
         string Name { get; set; }
-        UInt32 SerialNumber { get; init; }
         Dictionary<string, object> MetaData { get; set; }
+    }
+
+    public interface IGraph<T> : IGraph {
+        T Value { get; set; } // Generic value associated with the graph}
     }
 
     public abstract class BaseGraph : IGraph {
         protected IGraphStorage storage;
-        private static uint serialCounter = 0;
+        private static int serialCounter = 0;
         public string Name { get; set; }
-        public uint SerialNumber { get; init; }
+        public int Serial { get; init; }
         public Dictionary<string, object> MetaData { get; set; }
         public int NodeCount => storage.Nodes.Count;
         public int EdgeCount => storage.Edges.Count;
@@ -276,8 +285,8 @@ namespace CommunicationNetwork.Graph {
 
         protected BaseGraph(IGraphStorage storage, string name = null) {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
-            SerialNumber = Interlocked.Increment(ref serialCounter);
-            Name = name ?? $"{GetType().Name}_{SerialNumber}";
+            Serial = Interlocked.Increment(ref serialCounter);
+            Name = name ?? $"{GetType().Name}_{Serial}";
             MetaData = new Dictionary<string, object>();
         }
 
@@ -307,6 +316,16 @@ namespace CommunicationNetwork.Graph {
 
         public bool HasEdge(IEdge edge) {
             return storage.HasEdge(edge);
+        }
+    }
+
+    public class BaseGraph<T> : BaseGraph, IGraph<T> {
+        public T Value { get; set; } // Generic value associated with the graph
+        public BaseGraph(IGraphStorage storage, string name = null) : base(storage, name) {
+            Value = default(T);
+        }
+        public override string ToString() {
+            return $"{base.ToString()}, Value: {Value}";
         }
     }
 
