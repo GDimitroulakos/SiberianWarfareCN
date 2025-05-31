@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     /// <summary>
@@ -61,29 +62,27 @@ namespace CommunicationNetwork.Algorithm {
     public static class GraphElementDataExtensions {
 
         /// <summary>
-        /// Get typed data from graph element using key
-        /// 
-        /// YOUR REQUEST: "node.Info<DataType>(keys[ALGORITHM INPUT1])"
-        /// 
-        /// UTILIZATION: This IS the Info<DataType>() method you described.
-        /// Usage: node.Info<double>("road_capacity") returns typed data.
+        /// ===PURPOSE=== Get typed data from graph element using key
+        /// ===EXAMPLE=== node.Info<double>("road_capacity") returns typed data.
         /// </summary>
         public static T Info<T>(this IGraphElement element, string key) {
             if (element.MetaData.TryGetValue(key, out var value) && value is T typedValue) {
                 return typedValue;
             }
-            return default(T);
+            throw new KeyNotFoundException($"Key '{key}' not found in element metadata or value is not of type {typeof(T).Name}.");
         }
 
         /// <summary>
-        /// Set typed data on graph element
+        /// ===PURPOSE=== Set typed data on graph element
+        /// ===EXAMPLE=== node.SetInfo("road_capacity", 100.0) sets the value.
         /// </summary>
         public static void SetInfo<T>(this IGraphElement element, string key, T value) {
             element.MetaData[key] = value;
         }
 
         /// <summary>
-        /// Check if graph element has data for key
+        /// ===PURPOSE=== Check if graph element has data for key
+        /// ===EXAMPLE===: node.HasInfo("road_capacity") checks if the key exists.
         /// </summary>
         public static bool HasInfo(this IGraphElement element, string key) {
             return element.MetaData.ContainsKey(key);
