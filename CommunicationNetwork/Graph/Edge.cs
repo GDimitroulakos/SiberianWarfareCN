@@ -18,18 +18,20 @@ namespace CommunicationNetwork.Graph {
 
     public class Edge : IEdge {
         public virtual string Name { get; }
-        public Dictionary<string, object> MetaData { get; }
+        public Dictionary<object, object> MetaData { get; }
         public INode Source { get; }
         public INode Target { get; }
+        public Type ElementType { get; }
         public int Serial => m_serialNumber; // Serial number is not needed for edges, as they are not uniquely identified by a serial number
         public readonly int m_serialNumber; // Serial number is not needed for edges, as they are not uniquely identified by a serial number
         private static int ms_TedgeCounter = 0;
         public Edge(INode source, INode target) {
             m_serialNumber = Interlocked.Increment(ref ms_TedgeCounter);
             Name = "Edge" + m_serialNumber;
-            MetaData = new Dictionary<string, object>();
+            MetaData = new Dictionary<object, object>();
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Target = target ?? throw new ArgumentNullException(nameof(target));
+            ElementType = typeof(Edge);
         }
     }
 

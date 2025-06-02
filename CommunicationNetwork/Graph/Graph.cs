@@ -8,9 +8,10 @@ using Microsoft.VisualBasic;
 using System.Threading;
 
 namespace CommunicationNetwork.Graph {
-
+    
     public interface IGraphElement {
-        Dictionary<string, object> MetaData { get; }
+        Type ElementType { get; } // Type of the graph element (Node, Edge, Graph)}
+        Dictionary<object, object> MetaData { get; }
         string Name { get; }
         int Serial { get; }
     }
@@ -261,8 +262,10 @@ namespace CommunicationNetwork.Graph {
         bool AreConnected(INode source, INode target);
         bool HasNode(INode node);
         bool HasEdge(IEdge edge);
+        IReadOnlyList<INode> Nodes { get; }
+        IReadOnlyList<IEdge> Edges { get; }
         string Name { get; set; }
-        Dictionary<string, object> MetaData { get; set; }
+        Dictionary<object, object> MetaData { get; set; }
     }
 
     public interface IGraph<T> : IGraph {
@@ -273,11 +276,16 @@ namespace CommunicationNetwork.Graph {
         protected IGraphStorage storage;
         private static int serialCounter = 0;
         public string Name { get; set; }
+        public Type ElementType { get; }
         public int Serial { get; init; }
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<object, object> MetaData { get; set; }
         public int NodeCount => storage.Nodes.Count;
         public int EdgeCount => storage.Edges.Count;
+        public IReadOnlyList<INode> Nodes => storage.Nodes;
+        public IReadOnlyList<IEdge> Edges => storage.Edges;
+
         public bool IsEmpty => NodeCount == 0;
+
         public override string ToString() {
             return $"{GetType().Name} '{Name}' [Nodes: {NodeCount}, Edges: {EdgeCount}]";
         }
@@ -287,7 +295,8 @@ namespace CommunicationNetwork.Graph {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
             Serial = Interlocked.Increment(ref serialCounter);
             Name = name ?? $"{GetType().Name}_{Serial}";
-            MetaData = new Dictionary<string, object>();
+            MetaData = new Dictionary<object, object>();
+            ElementType = typeof(BaseGraph);
         }
 
         public void AddNode(INode node) {
@@ -371,7 +380,17 @@ namespace CommunicationNetwork.Graph {
             return storage.AreConnected(source, target) ||
                    storage.AreConnected(target, source);
         }
+    }
 
+    public class UnDirectedGraph<T> : UnDirectedGraph, IGraph<T> {
+        public T Value { get; set; } // Generic value associated with the graph
+        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) :
+            base(storage, name) {
+            Value = default(T);
+        }
+        public override string ToString() {
+            return $"{base.ToString()}, Value: {Value}";
+        }
     }
 
     public class DirectedGraph : BaseGraph, IDirectedGraph {
@@ -418,6 +437,16 @@ namespace CommunicationNetwork.Graph {
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             return directedStorage.GetIncomingEdges(node);
         }
+    }
 
+    public class DirectedGraph<T> : DirectedGraph, IGraph<T> {
+        public T Value { get; set; } // Generic value associated with the graph
+        public DirectedGraph(IDirectedGraphStorage storage, string name = null) :
+            base(storage, name) {
+            Value = default(T);
+        }
+        public override string ToString() {
+            return $"{base.ToString()}, Value: {Value}";
+        }
     }
 }
