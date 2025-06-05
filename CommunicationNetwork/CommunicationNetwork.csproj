@@ -7,4 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="bin\Debug\net9.0\test.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net9.0\test.dot" />
+  </ItemGroup>
+
 </Project>

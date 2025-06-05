@@ -3,137 +3,95 @@ using System.Collections.Generic;
 using System.Linq;
 using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
+using static CommunicationNetwork.Algorithms.BFSUndirected;
 
 namespace CommunicationNetwork.Algorithms {
 
-    public abstract class BaseAlgorithm{
-        Dictionary<object, object> _metaData = new Dictionary<object, object>();
-        Dictionary<object,IGraph> _inputGraphs = new Dictionary<object, IGraph>();
-        Dictionary<object,IGraph> _outputGraphs = new Dictionary<object, IGraph>();
+    public abstract class BaseAlgorithm {
 
-
-        public void AddMapping(string parameter, object key) {
-            if ( parameter == null || key == null) {
-                throw new ArgumentNullException("Parameter and key cannot be null.");
-            }
-            if (!_metaData.ContainsKey(parameter)) {
-                _metaData[parameter] = key;
-            } else {
-                throw new ArgumentException($"Parameter '{parameter}' already exists.");
-            }
-        }
-        public object GetMapping(string parameter) {
-            if (parameter == null) {
-                throw new ArgumentNullException("Parameter cannot be null.");
-            }
-            if (_metaData.ContainsKey(parameter)) {
-                return _metaData[parameter];
-            } else {
-                throw new KeyNotFoundException($"Parameter '{parameter}' not found.");
-            }
-        }
-
-        public void AddInputGraph(string name, IGraph graph) {
-            if (name == null || graph == null) {
-                throw new ArgumentNullException("Name and graph cannot be null.");
-            }
-            if (!_inputGraphs.ContainsKey(name)) {
-                _inputGraphs[name] = graph;
-            } else {
-                throw new ArgumentException($"Input graph '{name}' already exists.");
-            }
-        }
-        public IGraph GetInputGraph(string name) {
-            if (name == null) {
-                throw new ArgumentNullException("Name cannot be null.");
-            }
-            if (_inputGraphs.ContainsKey(name)) {
-                return _inputGraphs[name];
-            } else {
-                throw new KeyNotFoundException($"Input graph '{name}' not found.");
-            }
-        }
-
-        public void AddOutputGraph(string name, IGraph graph) {
-            if (name == null || graph == null) {
-                throw new ArgumentNullException("Name and graph cannot be null.");
-            }
-            if (!_outputGraphs.ContainsKey(name)) {
-                _outputGraphs[name] = graph;
-            } else {
-                throw new ArgumentException($"Output graph '{name}' already exists.");
-            }
-        }
-
-        public IGraph GetOutputGraph(string name) {
-            if (name == null) {
-                throw new ArgumentNullException("Name cannot be null.");
-            }
-            if (_outputGraphs.ContainsKey(name)) {
-                return _outputGraphs[name];
-            } else {
-                throw new KeyNotFoundException($"Output graph '{name}' not found.");
-            }
-        }
-
+        public abstract string MetadataKey { get; }
         public string Name { get; }
-       
        public abstract void Execute();
+       public abstract void Initialize();
     }
 
+
+    /// <summary>
+    /// I want to create a distributed memory model where each graph object (node,edge,graph) or scope ( global, local )
+    /// will have its own metadata dictionary. Every scope has a set of visible dictionaries that can be used to store metadata.
+    /// Every scope is initialized with the set of dictionaries that are visible to it. Each algorithm has its own scope
+    /// For example, the DFS algorithm will have a scope that contains the following dictionaries:
+    /// 1) Graph: The graph that is being traversed
+    /// 2) Nodes: Each node in the graph will have its own metadata dictionary. The key for the metadata dictionary will be
+    /// the name of the algorithm or the algorithm object itself, 
+    /// 3) Edges: Each edge in the graph will have its own metadata dictionary. The key for the metadata dictionary will be
+    /// the name of the algorithm or the algorithm object itself. 
+    /// 4) Global: A global dictionary that can be used to store metadata that is visible to all algorithms.
+    /// 5) Algorithm: A dictionary that contains the metadata for the algorithm itself, such as the time taken to execute
+    /// the algorithm, the number of nodes visited, etc.
+    /// </summary>
     public class DFSUndirected : BaseAlgorithm {
-        
+        private Dictionary<string, object> _dictData = new Dictionary<string, object>();
         UnDirectedGraph _graph;
         int time = 0;
 
-        public string []Input = new string[] { "Graph","Color", "TimeDiscovered", "TimeFinished" };
+
+        public override string MetadataKey => "DFSUndirected";
+        public string []Variables = new string[] { "Graph","Color", "TimeDiscovered", "TimeFinished","Time" };
 
         public DFSUndirected() {
-            AddMapping("Color", "DFSUndirected");
-            AddMapping("TimeDiscovered", "DFSUndirected");
-            AddMapping("TimeFinished", "DFSUndirected");
         }
-
+        
         public class DFSUndirected_NodeMetaData {
             public string Color; // WHITE, GRAY, BLACK
             public int TimeDiscovered; // Time when the node was discovered
             public int TimeFinished; // Time when the node was finished
         }
         
-        private string Color(INode node) {
-            return ((DFSUndirected_NodeMetaData)node.MetaData[GetMapping("Color")]).Color;
+        public UnDirectedGraph Graph() {
+            return _graph;
         }
-        private void SetColor(INode node, string color) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData[GetMapping("Color")];
+        public void SetUnDirectedGraph(UnDirectedGraph graph) {
+            _graph = graph;
+        }
+        public string Color(INode node) {
+            return ((DFSUndirected_NodeMetaData)node.MetaData["Color"]).Color;
+        }
+        public void SetColor(INode node, string color) {
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["Color"];
             metaData.Color = color;
         }
         public int TimeDiscovered(INode node) {
-            return ((DFSUndirected_NodeMetaData)node.MetaData["DFSUndirected"]).TimeDiscovered;
+            // 
+            return ((DFSUndirected_NodeMetaData)node.MetaData["TimeDiscovered"]).TimeDiscovered;
         }
         private void SetTimeDiscovered(INode node, int t) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["DFSUndirected"];
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["TimeDiscovered"];
             metaData.TimeDiscovered = t;
         }
         public int TimeFinished(INode node) {
-            return ((DFSUndirected_NodeMetaData)node.MetaData["DFSUndirected"]).TimeFinished;
+            return ((DFSUndirected_NodeMetaData)node.MetaData["TimeFinished"]).TimeFinished;
         } private void SetTimeFinished(INode node, int t) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["DFSUndirected"];
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["TimeFinished"];
             metaData.TimeFinished = t;
         }
-
-
         
-        public override void Execute() {
+        public override void Initialize() {
             time = 0;
-            _graph = (UnDirectedGraph)GetInputGraph("Graph");
             foreach (INode node in _graph.Nodes) {
                 // Initialize metadata for each node
-                node.MetaData["DFSUndirected"] = new DFSUndirected_NodeMetaData() {
+                node.MetaData[MetadataKey] = new DFSUndirected_NodeMetaData() {
                     Color = "WHITE",  // Unvisited
                     TimeDiscovered = -1, // Not discovered
                     TimeFinished = -1 // Not finished
                 };
             }
+        }
+
+        
+        public override void Execute() {
+            Initialize();
+            
             foreach (INode node in _graph.Nodes) {
                 if (Color(node) == "WHITE") {
                     DFSVisit(node);
@@ -156,47 +114,171 @@ namespace CommunicationNetwork.Algorithms {
             SetTimeFinished(node, time);
         }
     }
-    public class DFSUndirectedWithDuration : DFSUndirected {
-        UnDirectedGraph _graph;
-        public DFSUndirectedWithDuration(UnDirectedGraph graph) {
-            _graph = graph;
-            AddMapping("Duration", "DFSUndirectedWithDuration");
 
+    public class BFSUndirected : BaseAlgorithm {
+        private Dictionary<string, object> _dictData = new Dictionary<string, object>();
+        private UnDirectedGraph _graph;
+        private int time = 0;
+
+        public override string MetadataKey => "BFSUndirected";
+        public string[] Variables = new string[] { "Graph", "Color", "Distance", "Predecessor", "Time" };
+
+        public BFSUndirected() {
+        }
+
+        public class BFSUndirected_NodeMetaData {
+            public string Color; // WHITE, GRAY, BLACK
+            public int Distance; // Distance from source
+            public INode Predecessor; // Previous node in BFS path
+        }
+        
+
+        public UnDirectedGraph Graph() {
+            return _graph;
+        }
+
+        public void SetUnDirectedGraph(UnDirectedGraph graph) {
+            _graph = graph;
+        }
+
+        public string Color(INode node) {
+            return ((BFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).Color;
+        }
+
+        public void SetColor(INode node, string color) {
+            var metaData = (BFSUndirected_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Color = color;
+        }
+
+        public int Distance(INode node) {
+            return ((BFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).Distance;
+        }
+
+        public void SetDistance(INode node, int distance) {
+            var metaData = (BFSUndirected_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Distance = distance;
+        }
+
+        public INode Predecessor(INode node) {
+            return ((BFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).Predecessor;
+        }
+
+        public void SetPredecessor(INode node, INode pred) {
+            var metaData = (BFSUndirected_NodeMetaData)node.MetaData["BFSUndirected"];
+            metaData.Predecessor = pred;
+        }
+
+        public override void Initialize() {
             foreach (INode node in _graph.Nodes) {
-                // Initialize duration metadata for each node
-                node.MetaData["DFSUndirectedWithDuration"] = new DFSUndirectedWithDuration_NodeMetaData() {
-                    Duration = -1
+                node.MetaData[MetadataKey] = new BFSUndirected_NodeMetaData() {
+                    Color = "WHITE",
+                    Distance = int.MaxValue,
+                    Predecessor = null
                 };
             }
         }
 
-        public struct DFSUndirectedWithDuration_NodeMetaData {
-            public int Duration; // TimeFinished - TimeDiscovered
-        }
-
         public override void Execute() {
-            base.Execute();
+            Initialize();
             foreach (INode node in _graph.Nodes) {
-                int discovered = TimeDiscovered(node);
-                int finished = TimeFinished(node);
-                int duration = (discovered >= 0 && finished >= 0) ? (finished - discovered) : -1;
-                SetDuration(node, duration);
+                if (Color(node) == "WHITE") {
+                    BFSVisit(node);
+                }
             }
         }
 
-        public int Duration(INode node) {
-            return ((DFSUndirectedWithDuration_NodeMetaData)node.MetaData["DFSUndirectedWithDuration"]).Duration;
-        }
+        private void BFSVisit(INode startNode) {
+            SetColor(startNode, "GRAY");
+            SetDistance(startNode, 0);
+            SetPredecessor(startNode, null);
 
-        private void SetDuration(INode node, int duration) {
-            var metaData = (DFSUndirectedWithDuration_NodeMetaData)node.MetaData["DFSUndirectedWithDuration"];
-            metaData.Duration = duration;
-            node.MetaData["DFSUndirectedWithDuration"] = metaData;
+            var queue = new Queue<INode>();
+            queue.Enqueue(startNode);
+
+            while (queue.Count > 0) {
+                var node = queue.Dequeue();
+                foreach (var neighbor in _graph.GetNeighbors(node)) {
+                    if (Color(neighbor) == "WHITE") {
+                        SetColor(neighbor, "GRAY");
+                        SetDistance(neighbor, Distance(node) + 1);
+                        SetPredecessor(neighbor, node);
+                        queue.Enqueue(neighbor);
+                    }
+                }
+                SetColor(node, "BLACK");
+            }
         }
     }
-    
 
-    
+
+    public class DistanceTimeTuples : BaseAlgorithm {
+        private UnDirectedGraph _graph;
+        public override string MetadataKey => "DistanceTimeTuples";
+        
+        
+        public class DistanceTimeTuples_NodeMetaData {
+           public (int Distance, int TimeDiscovered) DistanceTimeDiscovered;
+           public (int Distance, int TimeFinished) DistanceTimeFinished;
+        }
+
+        public DistanceTimeTuples() { }
+
+        public void SetUnDirectedGraph(UnDirectedGraph graph) {
+            _graph = graph;
+        }
+
+        public override void Initialize() {
+            foreach (INode node in _graph.Nodes) {
+                node.MetaData[MetadataKey] = new DistanceTimeTuples_NodeMetaData() {
+                    DistanceTimeDiscovered = (-1, -1), // Distance, TimeDiscovered
+                    DistanceTimeFinished = (-1, -1)      // Distance, TimeFinished
+                };
+            }
+        }
+
+        public void SetDistanceTimeDiscovered(INode node, (int distance, int timeDiscovered) distanceTimeDiscovered) {
+            if (!node.MetaData.TryGetValue(MetadataKey, out var metaObj) ||
+                metaObj is not DistanceTimeTuples_NodeMetaData metaData)
+                throw new InvalidOperationException("DistanceTimeTuples metadata not found for node.");
+            metaData.DistanceTimeDiscovered = (distanceTimeDiscovered.Item1, distanceTimeDiscovered.Item2);
+        }
+
+        public void SetDistanceTimeFinished(INode node, (int distance, int TimeFinished) distanceTimeFinished) {
+            if (!node.MetaData.TryGetValue(MetadataKey, out var metaObj) ||
+                metaObj is not DistanceTimeTuples_NodeMetaData metaData)
+                throw new InvalidOperationException("DistanceTimeTuples metadata not found for node.");
+            metaData.DistanceTimeFinished = (distanceTimeFinished.distance, distanceTimeFinished.TimeFinished);
+        }
+
+        public int Distance(INode node) {
+            if ( !node.MetaData.TryGetValue("BFSUndirected", out var bfsMetaObj) ||
+                 !(bfsMetaObj is BFSUndirected.BFSUndirected_NodeMetaData bfsMetadata))
+                throw new InvalidOperationException("BFSUndirected metadata not found for node.");
+            return bfsMetadata.Distance;
+        }
+
+        public int TimeFinished(INode node) {
+            if (!node.MetaData.TryGetValue("DFSUndirected", out var dfsMetaObj) ||
+                dfsMetaObj is not DFSUndirected.DFSUndirected_NodeMetaData dfsMetadata)
+                throw new InvalidOperationException("DFSUndirected metadata not found for node.");
+            return dfsMetadata.TimeFinished;
+        }
+
+        public int TimeDiscovered(INode node) {
+            if (!node.MetaData.TryGetValue("DFSUndirected", out var dfsMetaObj) ||
+                dfsMetaObj is not DFSUndirected.DFSUndirected_NodeMetaData dfsMetadata)
+                throw new InvalidOperationException("DFSUndirected metadata not found for node.");
+            return dfsMetadata.TimeDiscovered;
+        }
+
+        public override void Execute() {
+            // Assumes DFSUndirected and BFSUndirected have already been executed on _graph
+            foreach (INode node in _graph.Nodes) {
+                SetDistanceTimeDiscovered(node,(Distance(node), TimeDiscovered(node)));
+                SetDistanceTimeFinished(node,(Distance(node), TimeFinished(node)));
+            }
+        }
+    }
 
 
 

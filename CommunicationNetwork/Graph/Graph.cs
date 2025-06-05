@@ -449,4 +449,77 @@ namespace CommunicationNetwork.Graph {
             return $"{base.ToString()}, Value: {Value}";
         }
     }
+    public static class DirectedGraphGraphvizPrinter {
+        /// <summary>
+        /// Generates a Graphviz DOT representation of a directed graph.
+        /// </summary>
+        /// <param name="graph">The directed graph to print.</param>
+        /// <returns>DOT format string.</returns>
+        public static string ToDot(IDirectedGraph graph,string dotFileName) {
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
+
+            var sb = new StringBuilder();
+            sb.AppendLine("digraph G {");
+
+            // Print nodes
+            foreach (var node in graph.Nodes) {
+                string nodeLabel = node.Name ?? node.Serial.ToString();
+                sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"];");
+            }
+
+            // Print edges
+            foreach (var edge in graph.Edges) {
+                string source = edge.Source.Serial.ToString();
+                string target = edge.Target.Serial.ToString();
+                string edgeLabel = edge.Name;
+                if (!string.IsNullOrEmpty(edgeLabel)) {
+                    sb.AppendLine($"    \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\"];");
+                } else {
+                    sb.AppendLine($"    \"{source}\" -> \"{target}\";");
+                }
+            }
+
+            sb.AppendLine("}");
+            StreamWriter dotFile = new StreamWriter(dotFileName);
+            dotFile.Write(sb);
+            dotFile.Close();
+            return sb.ToString();
+        }
+
+        public static void GenerateGraphGif(string dotFilePath, string outputGifPath) {
+            if (string.IsNullOrWhiteSpace(dotFilePath))
+                throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
+            if (string.IsNullOrWhiteSpace(outputGifPath))
+                throw new ArgumentException("Output GIF path must be provided.", nameof(outputGifPath));
+
+            var processStartInfo = new System.Diagnostics.ProcessStartInfo {
+                FileName = "dot",
+                Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
+                process.Start();
+                string stdOut = process.StandardOutput.ReadToEnd();
+                string stdErr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0) {
+                    throw new InvalidOperationException(
+                        $"dot process failed with exit code {process.ExitCode}: {stdErr}");
+                }
+            }
+        }
+
+        private static string Escape(string label) {
+            return label?.Replace("\"", "\\\"") ?? string.Empty;
+        }
+    }
+    
+
+
+
 }
