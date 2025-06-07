@@ -112,6 +112,99 @@ namespace CommunicationNetwork.Algorithms {
         }
     }
 
+    public class DFSDirected : BaseAlgorithm {
+        private Dictionary<string, object> _dictData = new Dictionary<string, object>();
+        DirectedGraph _graph;
+        int time = 0;
+
+        public static string MetadataKey => "DFSDirected";
+        public string[] Variables = new string[] { "Graph", "Color", "TimeDiscovered", "TimeFinished", "Time" };
+
+        public DFSDirected() {
+        }
+
+        public class DFSDirected_NodeMetaData {
+            public string Color; // WHITE, GRAY, BLACK
+            public int TimeDiscovered; // Time when the node was discovered
+            public int TimeFinished; // Time when the node was finished
+        }
+
+        public DirectedGraph Graph() {
+            return _graph;
+        }
+
+        public void SetDirectedGraph(DirectedGraph graph) {
+            _graph = graph;
+        }
+
+        public static string Color(INode node) {
+            return ((DFSDirected_NodeMetaData)node.MetaData[MetadataKey]).Color;
+        }
+
+        public void SetColor(INode node, string color) {
+            var metaData = (DFSDirected_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Color = color;
+        }
+
+        public static int TimeDiscovered(INode node) {
+            return ((DFSDirected_NodeMetaData)node.MetaData[MetadataKey]).TimeDiscovered;
+        }
+
+        private void SetTimeDiscovered(INode node, int t) {
+            var metaData = (DFSDirected_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.TimeDiscovered = t;
+        }
+
+        public static int TimeFinished(INode node) {
+            return ((DFSDirected_NodeMetaData)node.MetaData[MetadataKey]).TimeFinished;
+        }
+
+        private void SetTimeFinished(INode node, int t) {
+            var metaData = (DFSDirected_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.TimeFinished = t;
+        }
+
+        public override void Initialize() {
+            time = 0;
+            foreach (INode node in _graph.Nodes) {
+                // Initialize metadata for each node
+                node.MetaData[MetadataKey] = new DFSDirected_NodeMetaData() {
+                    Color = "WHITE",  // Unvisited
+                    TimeDiscovered = -1, // Not discovered
+                    TimeFinished = -1 // Not finished
+                };
+            }
+        }
+
+        public override void Execute() {
+            Initialize();
+
+            foreach (INode node in _graph.Nodes) {
+                if (Color(node) == "WHITE") {
+                    DFSVisit(node);
+                }
+            }
+        }
+
+        private void DFSVisit(INode node) {
+            time = time + 1;
+            SetTimeDiscovered(node, time);
+            SetColor(node, "GRAY"); // Visiting
+
+            foreach (var edge in _graph.GetOutgoingEdges(node)) {
+                if (Color(edge.Target) == "WHITE") {
+                    DFSVisit(edge.Target);
+                }
+            }
+
+            SetColor(node, "BLACK"); // Finished visiting
+            time = time + 1;
+            SetTimeFinished(node, time);
+        }
+    }
+
+
+
     public class BFSUndirected : BaseAlgorithm {
         private Dictionary<string, object> _dictData = new Dictionary<string, object>();
         private UnDirectedGraph _graph;

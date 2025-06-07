@@ -26,18 +26,46 @@ namespace CommunicationNetwork
                     edgeCount++;
                 }
             }
+
+            // Create a directed graph with the same nodes and edges
+            DirectedGraph directedGraph = new DirectedGraph(new DirectedAdjacencyListStorage(), "test_directed");
+            foreach (var node in nodes) {
+                directedGraph.AddNode(node);
+            }
+            foreach (var edge in createdEdges) {
+                // edge is (from, to) index
+                Edge<int> directedEdge = new Edge<int>(nodes[edge.Item1], nodes[edge.Item2]);
+                directedGraph.AddEdge(directedEdge);
+            }
+
             
             DFSUndirected dfs = new DFSUndirected();
             dfs.SetUnDirectedGraph(graph);
             dfs.Execute();
 
+
+
             UndirectedGraphGraphvizPrinter.ToDot(graph, "test.dot", new GraphvizPrinterSettings() {
                 ShowEdgeLabels = false,
-                ShowNodeLabels = false,
+                ShowNodeLabels = true,
                 ShowNodeProperties = true,
                 ShowEdgeProperties = false
             });
             UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");
+
+            DFSDirected dfsDirected = new DFSDirected();
+            dfsDirected.SetDirectedGraph(directedGraph);
+            dfsDirected.Execute();
+
+
+            // Print the directed graph to DOT and generate GIF
+            DirectedGraphGraphvizPrinter.ToDot(directedGraph, "test_directed.dot", new GraphvizPrinterSettings() {
+                ShowEdgeLabels = false,
+                ShowNodeLabels = true,
+                ShowNodeProperties = true,
+                ShowEdgeProperties = false
+            });
+            DirectedGraphGraphvizPrinter.GenerateGraphGif("test_directed.dot", "test_directed.gif");
 
 
         }

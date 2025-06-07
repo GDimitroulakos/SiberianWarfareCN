@@ -450,77 +450,7 @@ namespace CommunicationNetwork.Graph {
             return $"{base.ToString()}, Value: {Value}";
         }
     }
-    public static class DirectedGraphGraphvizPrinter {
-        /// <summary>
-        /// Generates a Graphviz DOT representation of a directed graph.
-        /// </summary>
-        /// <param name="graph">The directed graph to print.</param>
-        /// <returns>DOT format string.</returns>
-        public static string ToDot(IDirectedGraph graph,string dotFileName) {
-            if (graph == null) throw new ArgumentNullException(nameof(graph));
-
-            var sb = new StringBuilder();
-            sb.AppendLine("digraph G {");
-
-            // Print nodes
-            foreach (var node in graph.Nodes) {
-                string nodeLabel = node.Name ?? node.Serial.ToString();
-                sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"];");
-            }
-
-            // Print edges
-            foreach (var edge in graph.Edges) {
-                string source = edge.Source.Serial.ToString();
-                string target = edge.Target.Serial.ToString();
-                string edgeLabel = edge.Name;
-                if (!string.IsNullOrEmpty(edgeLabel)) {
-                    sb.AppendLine($"    \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\"];");
-                } else {
-                    sb.AppendLine($"    \"{source}\" -> \"{target}\";");
-                }
-            }
-
-            sb.AppendLine("}");
-            StreamWriter dotFile = new StreamWriter(dotFileName);
-            dotFile.Write(sb);
-            dotFile.Close();
-            return sb.ToString();
-        }
-
-        public static void GenerateGraphGif(string dotFilePath, string outputGifPath) {
-            if (string.IsNullOrWhiteSpace(dotFilePath))
-                throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
-            if (string.IsNullOrWhiteSpace(outputGifPath))
-                throw new ArgumentException("Output GIF path must be provided.", nameof(outputGifPath));
-
-            var processStartInfo = new System.Diagnostics.ProcessStartInfo {
-                FileName = "dot",
-                Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
-                process.Start();
-                string stdOut = process.StandardOutput.ReadToEnd();
-                string stdErr = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                if (process.ExitCode != 0) {
-                    throw new InvalidOperationException(
-                        $"dot process failed with exit code {process.ExitCode}: {stdErr}");
-                }
-            }
-        }
-
-        private static string Escape(string label) {
-            return label?.Replace("\"", "\\\"") ?? string.Empty;
-        }
-    }
-
-
+    
     public class GraphvizPrinterSettings {
         private bool _showNodeLabels = true;
         private bool _showEdgeLabels = false;
@@ -572,15 +502,17 @@ namespace CommunicationNetwork.Graph {
             foreach (var edge in graph.Edges) {
                 int source = edge.Source.Serial;
                 int target = edge.Target.Serial;
-                int min = Math.Min(source, target);
-                int max = Math.Max(source, target);
-                if (!printed.Add((min, max))) continue;
-
                 string edgeLabel = edge.Name;
-                if (!string.IsNullOrEmpty(edgeLabel)) {
-                    sb.AppendLine($"    \"{min}\" -- \"{max}\" [label=\"{Escape(edgeLabel)}\"];");
+
+                if (printSettings.ShowEdgeLabels) {
+                    if (printSettings.ShowEdgeProperties) {
+                        sb.AppendLine($"  \"{source}\" -- \"{target}\"  [label=\"{Escape(edgeLabel)}\"," +
+                                      $" xlabel=\"NA\"];");
+                    } else {
+                        sb.AppendLine($"    \"{source}\" -- \"{target}\" [label=\"{Escape(edgeLabel)}\"]");
+                    }
                 } else {
-                    sb.AppendLine($"    \"{min}\" -- \"{max}\";");
+                        sb.AppendLine($"    \"{source}\" -- \"{target}\";");
                 }
             }
 
@@ -602,8 +534,7 @@ namespace CommunicationNetwork.Graph {
                 : "N/A";
             if (printSettings.ShowNodeLabels) {
                 if (printSettings.ShowNodeProperties) {
-                    sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"," +
-                                  $" xlabel=\"TD:{TimeDiscovered}\nTF:{TimeFinished}\"];");
+                    sb.AppendLine($"    \"{node.Serial}\" [fixedsized=false, label=\"{Escape(nodeLabel)} \nTD:{TimeDiscovered} \nTF:{TimeFinished}\"];");
                 }
                 else {
                     sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"]");
@@ -650,7 +581,106 @@ namespace CommunicationNetwork.Graph {
             return label?.Replace("\"", "\\\"") ?? string.Empty;
         }
     }
+    public static class DirectedGraphGraphvizPrinter {
+        /// <summary>
+        /// Generates a Graphviz DOT representation of a directed graph.
+        /// </summary>
+        /// <param name="graph">The directed graph to print.</param>
+        /// <param name="dotFileName">The file name to write the DOT output to.</param>
+        /// <param name="printSettings">Settings for node/edge labels and properties.</param>
+        /// <returns>DOT format string.</returns>
+        public static string ToDot(IDirectedGraph graph, string dotFileName, GraphvizPrinterSettings printSettings) {
+            if (graph == null) throw new ArgumentNullException(nameof(graph));
 
+            var sb = new StringBuilder();
+            sb.AppendLine("digraph G {");
+
+            // Print nodes
+            foreach (var node in graph.Nodes) {
+                CreateAugmentedGraphvizNode(node, sb, printSettings);
+            }
+
+            // Print edges
+            foreach (var edge in graph.Edges) {
+                int source = edge.Source.Serial;
+                int target = edge.Target.Serial;
+                string edgeLabel = edge.Name;
+
+                if (printSettings.ShowEdgeLabels) {
+                    if (printSettings.ShowEdgeProperties) {
+                        sb.AppendLine($"  \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\", xlabel=\"NA\"];");
+                    } else {
+                        sb.AppendLine($"    \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\"]");
+                    }
+                } else {
+                    sb.AppendLine($"    \"{source}\" -> \"{target}\";");
+                }
+            }
+
+            sb.AppendLine("}");
+            using (StreamWriter dotFile = new StreamWriter(dotFileName)) {
+                dotFile.Write(sb);
+            }
+            return sb.ToString();
+        }
+
+        private static void CreateAugmentedGraphvizNode(INode node, StringBuilder sb, GraphvizPrinterSettings printSettings) {
+            string nodeLabel = node.Name ?? node.Serial.ToString();
+            var TimeDiscovered = node.MetaData.ContainsKey("DFSDirected")
+                ? DFSUndirected.TimeDiscovered(node).ToString()
+                : "N/A";
+            var TimeFinished = node.MetaData.ContainsKey("DFSDirected")
+                ? DFSUndirected.TimeFinished(node).ToString()
+                : "N/A";
+            if (printSettings.ShowNodeLabels) {
+                if (printSettings.ShowNodeProperties) {
+                    sb.AppendLine($"    \"{node.Serial}\" [fixedsized=false, label=\"{Escape(nodeLabel)} \\nTD:{TimeDiscovered} \\nTF:{TimeFinished}\"];");
+                } else {
+                    sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"]");
+                }
+            } else {
+                if (printSettings.ShowNodeProperties) {
+                    sb.AppendLine($"    \"{node.Serial}\" [xlabel=\"TD:{TimeDiscovered}\\nTF:{TimeFinished}\"];");
+                } else {
+                    sb.AppendLine($"    \"{node.Serial}\";");
+                }
+            }
+        }
+
+        public static void GenerateGraphGif(string dotFilePath, string outputGifPath) {
+            if (string.IsNullOrWhiteSpace(dotFilePath))
+                throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
+            if (string.IsNullOrWhiteSpace(outputGifPath))
+                throw new ArgumentException("Output GIF path must be provided.", nameof(outputGifPath));
+
+            var processStartInfo = new System.Diagnostics.ProcessStartInfo {
+                FileName = "dot",
+                Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
+                process.Start();
+                string stdOut = process.StandardOutput.ReadToEnd();
+                string stdErr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (process.ExitCode != 0) {
+                    throw new InvalidOperationException(
+                        $"dot process failed with exit code {process.ExitCode}: {stdErr}");
+                }
+            }
+        }
+
+        private static string Escape(string label) {
+            return label?.Replace("\"", "\\\"") ?? string.Empty;
+        }
+    }
+
+    
 
     
 
