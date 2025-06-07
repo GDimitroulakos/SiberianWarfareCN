@@ -488,7 +488,7 @@ namespace CommunicationNetwork.Graph.Tests {
             var graph2 = new DirectedGraph(new DirectedAdjacencyListStorage());
 
             // Assert
-            Assert.AreNotEqual(graph1.SerialNumber, graph2.SerialNumber);
+            Assert.AreNotEqual(graph1.Serial, graph2.Serial);
         }
 
         [TestMethod]

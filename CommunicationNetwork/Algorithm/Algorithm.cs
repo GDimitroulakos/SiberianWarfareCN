@@ -8,9 +8,7 @@ using static CommunicationNetwork.Algorithms.BFSUndirected;
 namespace CommunicationNetwork.Algorithms {
 
     public abstract class BaseAlgorithm {
-
-        public abstract string MetadataKey { get; }
-        public string Name { get; }
+       public string Name { get; }
        public abstract void Execute();
        public abstract void Initialize();
     }
@@ -36,7 +34,7 @@ namespace CommunicationNetwork.Algorithms {
         int time = 0;
 
 
-        public override string MetadataKey => "DFSUndirected";
+        public static string MetadataKey => "DFSUndirected";
         public string []Variables = new string[] { "Graph","Color", "TimeDiscovered", "TimeFinished","Time" };
 
         public DFSUndirected() {
@@ -54,25 +52,24 @@ namespace CommunicationNetwork.Algorithms {
         public void SetUnDirectedGraph(UnDirectedGraph graph) {
             _graph = graph;
         }
-        public string Color(INode node) {
-            return ((DFSUndirected_NodeMetaData)node.MetaData["Color"]).Color;
+        public static string Color(INode node) {
+            return ((DFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).Color;
         }
         public void SetColor(INode node, string color) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["Color"];
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData[MetadataKey];
             metaData.Color = color;
         }
-        public int TimeDiscovered(INode node) {
-            // 
-            return ((DFSUndirected_NodeMetaData)node.MetaData["TimeDiscovered"]).TimeDiscovered;
+        public static int TimeDiscovered(INode node) {
+           return ((DFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).TimeDiscovered;
         }
         private void SetTimeDiscovered(INode node, int t) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["TimeDiscovered"];
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData[MetadataKey];
             metaData.TimeDiscovered = t;
         }
-        public int TimeFinished(INode node) {
-            return ((DFSUndirected_NodeMetaData)node.MetaData["TimeFinished"]).TimeFinished;
+        public static int TimeFinished(INode node) {
+            return ((DFSUndirected_NodeMetaData)node.MetaData[MetadataKey]).TimeFinished;
         } private void SetTimeFinished(INode node, int t) {
-            var metaData = (DFSUndirected_NodeMetaData)node.MetaData["TimeFinished"];
+            var metaData = (DFSUndirected_NodeMetaData)node.MetaData[MetadataKey];
             metaData.TimeFinished = t;
         }
         
@@ -120,7 +117,7 @@ namespace CommunicationNetwork.Algorithms {
         private UnDirectedGraph _graph;
         private int time = 0;
 
-        public override string MetadataKey => "BFSUndirected";
+        public static string MetadataKey => "BFSUndirected";
         public string[] Variables = new string[] { "Graph", "Color", "Distance", "Predecessor", "Time" };
 
         public BFSUndirected() {
@@ -213,7 +210,7 @@ namespace CommunicationNetwork.Algorithms {
 
     public class DistanceTimeTuples : BaseAlgorithm {
         private UnDirectedGraph _graph;
-        public override string MetadataKey => "DistanceTimeTuples";
+        public static string MetadataKey => "DistanceTimeTuples";
         
         
         public class DistanceTimeTuples_NodeMetaData {

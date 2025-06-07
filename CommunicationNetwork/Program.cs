@@ -1,10 +1,11 @@
-﻿using CommunicationNetwork.Graph;
+﻿using CommunicationNetwork.Algorithms;
+using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork
 {
     internal class Program {
         static void Main(string[] args) {
-           DirectedGraph graph = new DirectedGraph(new DirectedAdjacencyListStorage(), "test");
+           UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
             List<Node<int>> nodes = new List<Node<int>>();
             for (int i = 0; i < 10; i++) {
                 Node<int> newNode = new Node<int>();
@@ -25,8 +26,20 @@ namespace CommunicationNetwork
                     edgeCount++;
                 }
             }
-            DirectedGraphGraphvizPrinter.ToDot(graph,"test.dot");
-            DirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot","test.gif");
+            
+            DFSUndirected dfs = new DFSUndirected();
+            dfs.SetUnDirectedGraph(graph);
+            dfs.Execute();
+
+            UndirectedGraphGraphvizPrinter.ToDot(graph, "test.dot", new GraphvizPrinterSettings() {
+                ShowEdgeLabels = false,
+                ShowNodeLabels = false,
+                ShowNodeProperties = true,
+                ShowEdgeProperties = false
+            });
+            UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");
+
+
         }
     }
 }
