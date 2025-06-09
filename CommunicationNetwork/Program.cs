@@ -6,39 +6,44 @@ namespace CommunicationNetwork
     internal class Program {
         static void Main(string[] args) {
            UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
-            List<Node<int>> nodes = new List<Node<int>>();
-            for (int i = 0; i < 10; i++) {
-                Node<int> newNode = new Node<int>();
-                nodes.Add(newNode);
-                graph.AddNode(newNode);
-            }
-            // Create 20 directed edges between the nodes
-            Random rand = new Random();
-            HashSet<(int, int)> createdEdges = new HashSet<(int, int)>();
-            int edgeCount = 0;
-            while (edgeCount < 20) {
-                int from = rand.Next(0, nodes.Count);
-                int to = rand.Next(0, nodes.Count);
-                if (from != to && !createdEdges.Contains((from, to))) {
-                    Edge<int> newedge = new Edge<int>(nodes[from], nodes[to]);
-                    graph.AddEdge(newedge);
-                    createdEdges.Add((from, to));
-                    edgeCount++;
-                }
-            }
+            Node node1 = new Node();
+            Node node2 = new Node();
+            Node node3 = new Node();
+            Node node4 = new Node();
+            Node node5 = new Node();
+            Edge edge1 = new Edge(node1, node2);
+            Edge edge2 = new Edge(node2, node3);
+            Edge edge3 = new Edge(node1, node4);
+            Edge edge4 = new Edge(node1, node5);
+            Edge edge5 = new Edge(node4, node5);
+            Edge edge6 = new Edge(node3, node5);
+            graph.AddNode(node1);
+            graph.AddNode(node2);
+            graph.AddNode(node3);
+            graph.AddNode(node4);
+            graph.AddNode(node5);
+            graph.AddEdge(edge1);
+            graph.AddEdge(edge2);
+            graph.AddEdge(edge3);
+            graph.AddEdge(edge4);
+            graph.AddEdge(edge5);
 
-            // Create a directed graph with the same nodes and edges
             DirectedGraph directedGraph = new DirectedGraph(new DirectedAdjacencyListStorage(), "test_directed");
-            foreach (var node in nodes) {
-                directedGraph.AddNode(node);
-            }
-            foreach (var edge in createdEdges) {
-                // edge is (from, to) index
-                Edge<int> directedEdge = new Edge<int>(nodes[edge.Item1], nodes[edge.Item2]);
-                directedGraph.AddEdge(directedEdge);
-            }
+            directedGraph.AddNode(node1);
+            directedGraph.AddNode(node2);
+            directedGraph.AddNode(node3);
+            directedGraph.AddNode(node4);
+            directedGraph.AddNode(node5);
+            directedGraph.AddEdge(edge1);
+            directedGraph.AddEdge(edge2);
+            directedGraph.AddEdge(edge3);
+            directedGraph.AddEdge(edge4);
+            directedGraph.AddEdge(edge6);
 
-            
+
+
+
+
             DFSUndirected dfs = new DFSUndirected();
             dfs.SetUnDirectedGraph(graph);
             dfs.Execute();

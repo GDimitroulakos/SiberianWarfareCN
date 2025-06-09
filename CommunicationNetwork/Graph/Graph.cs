@@ -627,10 +627,10 @@ namespace CommunicationNetwork.Graph {
         private static void CreateAugmentedGraphvizNode(INode node, StringBuilder sb, GraphvizPrinterSettings printSettings) {
             string nodeLabel = node.Name ?? node.Serial.ToString();
             var TimeDiscovered = node.MetaData.ContainsKey("DFSDirected")
-                ? DFSUndirected.TimeDiscovered(node).ToString()
+                ? DFSDirected.TimeDiscovered(node).ToString()
                 : "N/A";
             var TimeFinished = node.MetaData.ContainsKey("DFSDirected")
-                ? DFSUndirected.TimeFinished(node).ToString()
+                ? DFSDirected.TimeFinished(node).ToString()
                 : "N/A";
             if (printSettings.ShowNodeLabels) {
                 if (printSettings.ShowNodeProperties) {
