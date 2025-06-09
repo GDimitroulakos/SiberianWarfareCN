@@ -1,5 +1,6 @@
 ﻿using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
+using CommunicationNetwork.Nodes;
 using static CommunicationNetwork.Graph.BaseNodeMetadataGraphvizPrinter;
 
 namespace CommunicationNetwork
@@ -42,10 +43,42 @@ namespace CommunicationNetwork
             directedGraph.AddEdge(edge6);
 
 
+            /*
+             *  Test Message Trasmission
+             */
+            UnDirectedGraph testTransmissionGraph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test_transmission");
+			TerminalNode nodeA = new TerminalNode();
+			WiredNode nodeB = new WiredNode();
+			WiredNode nodeC = new WiredNode();
+			TerminalNode nodeD = new TerminalNode();
+            Edge edgeA = new Edge(nodeA, nodeB);
+			Edge edgeB = new Edge(nodeB, nodeC);
+			Edge edgeC = new Edge(nodeC, nodeD);
+			testTransmissionGraph.AddNode(nodeA);
+			testTransmissionGraph.AddNode(nodeB);
+			testTransmissionGraph.AddNode(nodeC);
+			testTransmissionGraph.AddNode(nodeD);
+			testTransmissionGraph.AddEdge(edgeA);
+			testTransmissionGraph.AddEdge(edgeB);
+			testTransmissionGraph.AddEdge(edgeC);
+
+            Packet packet = new Packet()
+			{
+				Payload = "Hello, World!",
+				Source = nodeA,
+				Destination = nodeD,
+				CurrentNode = nodeA
+			};
+
+            
+
+			/*
+			 *  End Test Message Trasmission
+             */
 
 
 
-            DFSUndirected dfs = new DFSUndirected();
+			DFSUndirected dfs = new DFSUndirected();
             dfs.SetUnDirectedGraph(graph);
             dfs.Execute();
 
