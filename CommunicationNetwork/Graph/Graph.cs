@@ -9,7 +9,7 @@ using System.Threading;
 using CommunicationNetwork.Algorithms;
 
 namespace CommunicationNetwork.Graph {
-    
+
     public interface IGraphElement {
         Type ElementType { get; } // Type of the graph element (Node, Edge, Graph)}
         Dictionary<object, object> MetaData { get; }
@@ -169,7 +169,7 @@ namespace CommunicationNetwork.Graph {
         private void ValidateNodeExists(INode node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
-            } else if (!Nodes.Contains(node)){// Check if the node exists in the graph
+            } else if (!Nodes.Contains(node)) {// Check if the node exists in the graph
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             } else if (!outgoingEdge.ContainsKey(node)) { // Check if the node data in the graph are consistent
                 throw new ArgumentException("Inconsisent graph state. Uninitialize list of Outgoing edges",
@@ -355,7 +355,7 @@ namespace CommunicationNetwork.Graph {
         readonly IUndirectedGraphStorage undirectedStorage;
 
         public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) : base(storage, name) {
-            undirectedStorage = storage ;
+            undirectedStorage = storage;
         }
         public IEnumerable<INode> GetNeighbors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
@@ -398,7 +398,7 @@ namespace CommunicationNetwork.Graph {
         IDirectedGraphStorage directedStorage;
 
         public DirectedGraph(IDirectedGraphStorage storage, string name = null) : base(storage, name) {
-            directedStorage = storage ;
+            directedStorage = storage;
         }
 
         // Update your DirectedGraph.GetSuccessors method
@@ -450,7 +450,7 @@ namespace CommunicationNetwork.Graph {
             return $"{base.ToString()}, Value: {Value}";
         }
     }
-    
+
     public class GraphvizPrinterSettings {
         private bool _showNodeLabels = true;
         private bool _showEdgeLabels = false;
@@ -494,7 +494,7 @@ namespace CommunicationNetwork.Graph {
 
             // Print nodes
             foreach (var node in graph.Nodes) {
-                CreateAugmentedGraphvizNode(node, sb,printSettings);
+                CreateAugmentedGraphvizNode(node, sb, printSettings);
             }
 
             // Print edges (avoid duplicates by only printing edge if Source.Serial <= Target.Serial)
@@ -512,7 +512,7 @@ namespace CommunicationNetwork.Graph {
                         sb.AppendLine($"    \"{source}\" -- \"{target}\" [label=\"{Escape(edgeLabel)}\"]");
                     }
                 } else {
-                        sb.AppendLine($"    \"{source}\" -- \"{target}\";");
+                    sb.AppendLine($"    \"{source}\" -- \"{target}\";");
                 }
             }
 
@@ -523,7 +523,7 @@ namespace CommunicationNetwork.Graph {
             return sb.ToString();
         }
 
-        private static void CreateAugmentedGraphvizNode(INode node, 
+        private static void CreateAugmentedGraphvizNode(INode node,
             StringBuilder sb, GraphvizPrinterSettings printSettings) {
             string nodeLabel = node.Name ?? node.Serial.ToString();
             var TimeDiscovered = node.MetaData.ContainsKey("DFSUndirected")
@@ -535,15 +535,13 @@ namespace CommunicationNetwork.Graph {
             if (printSettings.ShowNodeLabels) {
                 if (printSettings.ShowNodeProperties) {
                     sb.AppendLine($"    \"{node.Serial}\" [fixedsized=false, label=\"{Escape(nodeLabel)} \nTD:{TimeDiscovered} \nTF:{TimeFinished}\"];");
-                }
-                else {
+                } else {
                     sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"]");
                 }
             } else {
                 if (printSettings.ShowNodeProperties) {
                     sb.AppendLine($"    \"{node.Serial}\" [xlabel=\"TD:{TimeDiscovered}\nTF:{TimeFinished}\"];");
-                }
-                else {
+                } else {
                     sb.AppendLine($"    \"{node.Serial}\";");
                 }
             }
@@ -581,15 +579,16 @@ namespace CommunicationNetwork.Graph {
             return label?.Replace("\"", "\\\"") ?? string.Empty;
         }
     }
-    public static class DirectedGraphGraphvizPrinter {
-        /// <summary>
-        /// Generates a Graphviz DOT representation of a directed graph.
-        /// </summary>
-        /// <param name="graph">The directed graph to print.</param>
-        /// <param name="dotFileName">The file name to write the DOT output to.</param>
-        /// <param name="printSettings">Settings for node/edge labels and properties.</param>
-        /// <returns>DOT format string.</returns>
-        public static string ToDot(IDirectedGraph graph, string dotFileName, GraphvizPrinterSettings printSettings) {
+    public class DirectedGraphGraphvizPrinter {
+
+        INodeMetadataGraphvizPrinter _nodePrinter;
+
+
+        public DirectedGraphGraphvizPrinter(INodeMetadataGraphvizPrinter nodePrinter) {
+            _nodePrinter = nodePrinter;
+        }
+
+        public string ToDot(IDirectedGraph graph, string dotFileName, GraphvizPrinterSettings printSettings) {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
 
             var sb = new StringBuilder();
@@ -597,7 +596,7 @@ namespace CommunicationNetwork.Graph {
 
             // Print nodes
             foreach (var node in graph.Nodes) {
-                CreateAugmentedGraphvizNode(node, sb, printSettings);
+                sb.AppendLine(_nodePrinter.ToString(node));
             }
 
             // Print edges
@@ -623,31 +622,9 @@ namespace CommunicationNetwork.Graph {
             }
             return sb.ToString();
         }
-
-        private static void CreateAugmentedGraphvizNode(INode node, StringBuilder sb, GraphvizPrinterSettings printSettings) {
-            string nodeLabel = node.Name ?? node.Serial.ToString();
-            var TimeDiscovered = node.MetaData.ContainsKey("DFSDirected")
-                ? DFSDirected.TimeDiscovered(node).ToString()
-                : "N/A";
-            var TimeFinished = node.MetaData.ContainsKey("DFSDirected")
-                ? DFSDirected.TimeFinished(node).ToString()
-                : "N/A";
-            if (printSettings.ShowNodeLabels) {
-                if (printSettings.ShowNodeProperties) {
-                    sb.AppendLine($"    \"{node.Serial}\" [fixedsized=false, label=\"{Escape(nodeLabel)} \\nTD:{TimeDiscovered} \\nTF:{TimeFinished}\"];");
-                } else {
-                    sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"]");
-                }
-            } else {
-                if (printSettings.ShowNodeProperties) {
-                    sb.AppendLine($"    \"{node.Serial}\" [xlabel=\"TD:{TimeDiscovered}\\nTF:{TimeFinished}\"];");
-                } else {
-                    sb.AppendLine($"    \"{node.Serial}\";");
-                }
-            }
-        }
-
-        public static void GenerateGraphGif(string dotFilePath, string outputGifPath) {
+        
+        
+        public void GenerateGraphGif(string dotFilePath, string outputGifPath) {
             if (string.IsNullOrWhiteSpace(dotFilePath))
                 throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
             if (string.IsNullOrWhiteSpace(outputGifPath))
@@ -680,9 +657,9 @@ namespace CommunicationNetwork.Graph {
         }
     }
 
-    
 
-    
+
+
 
 
 

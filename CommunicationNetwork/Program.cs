@@ -1,5 +1,6 @@
 ﻿using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
+using static CommunicationNetwork.Graph.BaseNodeMetadataGraphvizPrinter;
 
 namespace CommunicationNetwork
 {
@@ -63,14 +64,19 @@ namespace CommunicationNetwork
             dfsDirected.Execute();
 
 
+            DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
+                new DFSDirectedGraphvizFixedSizePropertyPrinter(
+                    new DFSGraphvizNodePrinter() ));
+            DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp);
+
             // Print the directed graph to DOT and generate GIF
-            DirectedGraphGraphvizPrinter.ToDot(directedGraph, "test_directed.dot", new GraphvizPrinterSettings() {
+            dgp.ToDot(directedGraph, "test_directed.dot", new GraphvizPrinterSettings() {
                 ShowEdgeLabels = false,
                 ShowNodeLabels = true,
                 ShowNodeProperties = true,
                 ShowEdgeProperties = false
             });
-            DirectedGraphGraphvizPrinter.GenerateGraphGif("test_directed.dot", "test_directed.gif");
+            dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif");
 
 
         }
