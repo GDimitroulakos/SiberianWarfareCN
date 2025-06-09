@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Graph {
 
-    
     public interface INodeMetadataGraphvizPrinter {
         string ToString(INode node);
     }
@@ -20,7 +19,7 @@ namespace CommunicationNetwork.Graph {
             return $"\"{NodeID(node)}\" ";
         }
 
-        private string NodeID(INode node) {
+        public static string NodeID(INode node) {
             return node.Serial.ToString();
         }
     }

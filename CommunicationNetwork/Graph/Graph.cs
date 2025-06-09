@@ -582,13 +582,17 @@ namespace CommunicationNetwork.Graph {
     public class DirectedGraphGraphvizPrinter {
 
         INodeMetadataGraphvizPrinter _nodePrinter;
+        IEdgeMetadataGraphvizPrinter _edgePrinter;
 
 
-        public DirectedGraphGraphvizPrinter(INodeMetadataGraphvizPrinter nodePrinter) {
+        public DirectedGraphGraphvizPrinter(
+            INodeMetadataGraphvizPrinter nodePrinter,
+            IEdgeMetadataGraphvizPrinter edgePrinter) {
             _nodePrinter = nodePrinter;
+            _edgePrinter = edgePrinter;
         }
 
-        public string ToDot(IDirectedGraph graph, string dotFileName, GraphvizPrinterSettings printSettings) {
+        public string ToDot(IDirectedGraph graph, string dotFileName) {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
 
             var sb = new StringBuilder();
@@ -604,16 +608,7 @@ namespace CommunicationNetwork.Graph {
                 int source = edge.Source.Serial;
                 int target = edge.Target.Serial;
                 string edgeLabel = edge.Name;
-
-                if (printSettings.ShowEdgeLabels) {
-                    if (printSettings.ShowEdgeProperties) {
-                        sb.AppendLine($"  \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\", xlabel=\"NA\"];");
-                    } else {
-                        sb.AppendLine($"    \"{source}\" -> \"{target}\" [label=\"{Escape(edgeLabel)}\"]");
-                    }
-                } else {
-                    sb.AppendLine($"    \"{source}\" -> \"{target}\";");
-                }
+                sb.AppendLine(_edgePrinter.ToString(edge));
             }
 
             sb.AppendLine("}");
