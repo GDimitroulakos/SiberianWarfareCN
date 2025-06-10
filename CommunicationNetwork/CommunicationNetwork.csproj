@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Graph\EdgeMetadataGraphvizPrinters.cs" />
+    <Compile Remove="Graph\NodeMetadataGraphvizPrinters.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="bin\Debug\net9.0\test.gif" />
     <Content Include="bin\Debug\net9.0\test_directed.gif" />
   </ItemGroup>

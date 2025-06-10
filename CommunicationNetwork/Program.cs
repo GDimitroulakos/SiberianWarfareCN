@@ -1,6 +1,6 @@
 ﻿using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
-using static CommunicationNetwork.Graph.BaseNodeMetadataGraphvizPrinter;
+using CommunicationNetwork.Graph.GraphvizPrinter;
 
 namespace CommunicationNetwork
 {
@@ -62,9 +62,16 @@ namespace CommunicationNetwork
             DFSDirected dfsDirected = new DFSDirected();
             dfsDirected.SetDirectedGraph(directedGraph);
             dfsDirected.Execute();
+            
+            GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
+            graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
+            GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
+            graphvizFileLayoutVisitor.GenerateDot("test_directed.dot", graphToDOTGeneration.DotFileAst);
+            graphvizFileLayoutVisitor.GenerateGIF();
 
 
-            DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
+
+            /*DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
                 new DFSDirectedGraphvizFixedSizePropertyPrinter(
                     new DFSGraphvizNodePrinter() ));
             DFSGraphvizEdgePrinter dgep = new DFSGraphvizEdgePrinter();
@@ -72,7 +79,7 @@ namespace CommunicationNetwork
 
             // Print the directed graph to DOT and generate GIF
             dgp.ToDot(directedGraph, "test_directed.dot");
-            dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif");
+            dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif"); */
 
 
         }
