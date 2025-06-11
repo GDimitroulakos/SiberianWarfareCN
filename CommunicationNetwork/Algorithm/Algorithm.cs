@@ -127,6 +127,10 @@ namespace CommunicationNetwork.Algorithms {
             public string Color; // WHITE, GRAY, BLACK
             public int TimeDiscovered; // Time when the node was discovered
             public int TimeFinished; // Time when the node was finished
+
+            public override string ToString() {
+                return $"Color={Color}\nTimeDiscovered={TimeDiscovered}\nTimeFinished={TimeFinished}";
+            }
         }
 
         public DirectedGraph Graph() {

@@ -99,20 +99,33 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             visitor.Visit(this);
         }
     }
-    public class GraphvizNodeProperty : ASTLeaf {
+    public class GraphvizNodeProperty : ASTComposite {
         string _propertyName;
-        string _propertyValue;
         public string PropertyName => _propertyName;
-        public string PropertyValue => _propertyValue;
-        public GraphvizNodeProperty(string propertyName, string propertyValue) :
+
+        public const int PROPERTY_VALUES = 0;
+
+        public GraphvizNodeProperty(string propertyName) :
             base("GraphvizNodeProperty") {
             _propertyName = propertyName;
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+
+    public class GraphvizNodePropertyValue : ASTLeaf {
+        private string _propertyValue;
+        public string PropertyValue => _propertyValue;
+        public GraphvizNodePropertyValue(string propertyValue) :
+            base("GraphvizNodePropertyValue") {
             _propertyValue = propertyValue;
         }
         public override void Accept(IGraphvizASTVisitor visitor) {
             visitor.Visit(this);
         }
     }
+    
 
     public class GraphvizEdgeProperty : ASTLeaf {
         string _propertyName;
