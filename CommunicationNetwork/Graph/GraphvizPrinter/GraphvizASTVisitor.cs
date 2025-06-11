@@ -83,6 +83,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             string dotFilePath = System.IO.Path.ChangeExtension(_filename, ".dot");
             string outputGifPath = System.IO.Path.ChangeExtension(_filename, ".gif");
 
+            // Configure the process start info for running the dot command
             var processStartInfo = new System.Diagnostics.ProcessStartInfo {
                 FileName = "dot",
                 Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
@@ -92,6 +93,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                 CreateNoWindow = true
             };
 
+            // Start the process and wait for it to complete. In case of an error, throw an exception with the error message.
             using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
                 process.Start();
                 string stdOut = process.StandardOutput.ReadToEnd();
@@ -127,6 +129,9 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Custom logic for visiting node properties
             _writer.Write($" [ ");
             int i;
+
+            // Iterate through each property in the node properties and output comma 
+            // separated values. VisitChildren cannot do that
             foreach (var property in
                      properties.
                          Children[GraphvizNodeProperties.PROPERTIES].
@@ -145,6 +150,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Custom logic for visiting edge properties
             _writer.Write($" [ ");
             int i;
+            // Iterate through each property in the edge properties and output comma
+            // separated values. VisitChildren cannot do that
             foreach (var property in
                      properties.
                          Children[GraphvizEdgeProperties.PROPERTIES].
@@ -163,6 +170,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Custom logic for visiting a single node property
             _writer.Write($"{property.PropertyName}= \"");
             int i = 0;
+            // Iterate through each value in the node property and output them
+            // its in own line. VisitChildren cannot do that
             foreach (GraphvizNodePropertyValue value in property.
                          Children[GraphvizEdgeProperty.PROPERTY_VALUES].
                          Cast<GraphvizNodePropertyValue>()) {
@@ -186,6 +195,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Custom logic for visiting a single edge property
             _writer.Write($"{property.PropertyName}= \"");
             int i = 0;
+            // Iterate through each value in the edge property and output them
+            // its in own line. VisitChildren cannot do that
             foreach (GraphvizEdgePropertyValue value in property.
                          Children[GraphvizEdgeProperty.PROPERTY_VALUES].
                          Cast<GraphvizEdgePropertyValue>()) {
