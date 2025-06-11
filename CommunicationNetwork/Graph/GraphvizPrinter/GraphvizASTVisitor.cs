@@ -155,7 +155,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         public override void Visit(GraphvizNodePropertyValue value) {
             // Custom logic for visiting a single node property value
-            _writer.Write($"{value.PropertyValue}");
+            _writer.Write($"{value.PropertyValue}\n");
         }
 
         public override void Visit(GraphvizEdgeProperty property) {

@@ -48,7 +48,12 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                 GraphvizNodeProperty labelProperty = new GraphvizNodeProperty("label");
                 newProperties.AddChild(GraphvizNode.ATTRIBUTE_LIST, labelProperty);
 
-                // A1. Add property values to the label property
+                // A1. Add the node ID as the first value of the label property
+                GraphvizNodePropertyValue labelValue =
+                    new GraphvizNodePropertyValue(node.Serial.ToString());
+                labelProperty.AddChild(GraphvizNodeProperty.PROPERTY_VALUES, labelValue);
+
+                // A2. Add property values to the label property
                 foreach (var key in _nodeMetadataKeys) {
                     GraphvizNodePropertyValue newValue =
                         new GraphvizNodePropertyValue(node.MetaData[key].ToString());

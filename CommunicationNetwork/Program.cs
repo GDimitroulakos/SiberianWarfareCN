@@ -65,6 +65,7 @@ namespace CommunicationNetwork
             
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(DFSDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(DFSUndirected.MetadataKey); // ****DO BE REMOVED -- for testing purposes  ****
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
             
