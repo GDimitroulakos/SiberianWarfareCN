@@ -41,11 +41,9 @@ namespace CommunicationNetwork
             directedGraph.AddEdge(edge4);
             directedGraph.AddEdge(edge6);
 
+            
 
-
-
-
-            DFSUndirected dfs = new DFSUndirected();
+            /*DFSUndirected dfs = new DFSUndirected();
             dfs.SetUnDirectedGraph(graph);
             dfs.Execute();
 
@@ -57,15 +55,16 @@ namespace CommunicationNetwork
                 ShowNodeProperties = true,
                 ShowEdgeProperties = false
             });
-            UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");
+            UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");*/
 
+            // Run DFS on directed graph
             DFSDirected dfsDirected = new DFSDirected();
             dfsDirected.SetDirectedGraph(directedGraph);
             dfsDirected.Execute();
             
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(DFSDirected.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(DFSUndirected.MetadataKey); // ****DO BE REMOVED -- for testing purposes  ****
+            //graphToDOTGeneration.AddNodeMetadataKey(DFSUndirected.MetadataKey); // ****DO BE REMOVED -- for testing purposes  ****
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
             

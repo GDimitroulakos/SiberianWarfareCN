@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using CommunicationNetwork.Graph.GraphvizPrinter;
 
 
 namespace CommunicationNetwork.Graph.GraphvizPrinter {
@@ -99,6 +100,33 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             visitor.Visit(this);
         }
     }
+
+    public class GraphvizEdgeProperty : ASTComposite {
+        string _propertyName;
+        public string PropertyName => _propertyName;
+        public const int PROPERTY_VALUES = 0;
+
+        public GraphvizEdgeProperty(string propertyName) :
+            base("GraphvizEdgeProperty") {
+            _propertyName = propertyName;
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+
+    public class GraphvizEdgePropertyValue : ASTLeaf {
+        private string _propertyValue;
+        public string PropertyValue => _propertyValue;
+        public GraphvizEdgePropertyValue(string propertyValue) :
+            base("GraphvizEdgePropertyValue") {
+            _propertyValue = propertyValue;
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+
     public class GraphvizNodeProperty : ASTComposite {
         string _propertyName;
         public string PropertyName => _propertyName;
@@ -126,22 +154,6 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
     }
     
-
-    public class GraphvizEdgeProperty : ASTLeaf {
-        string _propertyName;
-        string _propertyValue;
-        public string PropertyName => _propertyName;
-        public string PropertyValue => _propertyValue;
-        public GraphvizEdgeProperty(string propertyName, string propertyValue) :
-            base("GraphvizNodeProperty") {
-            _propertyName = propertyName;
-            _propertyValue = propertyValue;
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
     public class GraphvizEdge : ASTComposite {
         string _sourceNodeID;
         string _targetNodeID;

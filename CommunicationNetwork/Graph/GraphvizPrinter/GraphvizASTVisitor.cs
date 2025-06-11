@@ -103,7 +103,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                 }
             }
         }
-        
+
         public override void Visit(GraphvizFileLayout layout) {
             _writer.WriteLine($"{layout.GraphType} {layout.GraphName} {{");
             VisitChildren(layout);
@@ -126,7 +126,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Custom logic for visiting node properties
             _writer.Write($" [ ");
             int i;
-            foreach (var property in 
+            foreach (var property in
                      properties.
                          Children[GraphvizNodeProperties.PROPERTIES].
                          Cast<GraphvizNodeProperty>()) {
@@ -143,7 +143,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         public override void Visit(GraphvizEdgeProperties properties) {
             // Custom logic for visiting edge properties
             _writer.Write($" [ ");
-           VisitChildren(properties);
+            VisitChildren(properties);
             _writer.Write(" ]");
         }
         public override void Visit(GraphvizNodeProperty property) {
@@ -160,9 +160,10 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         public override void Visit(GraphvizEdgeProperty property) {
             // Custom logic for visiting a single edge property
-            _writer.Write($"{property.PropertyName}=\"{property.PropertyValue}\" ");
+            _writer.Write($"{property.PropertyName}= \"");
+            VisitChildren(property);
+            _writer.Write("\" ");
         }
-
     }
 
 }
