@@ -9,7 +9,6 @@ namespace CommunicationNetwork.Nodes
 {
 	public class WiredNode : Node
 	{
-		
 		public WiredNode() : base()
 		{
 			// Initialization logic for wired node

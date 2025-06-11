@@ -41,4 +41,9 @@ namespace CommunicationNetwork
 			}
 		}
 	}
+
+	public interface Transmitter
+	{
+		void Transmit(Packet packet);
+	}
 }
