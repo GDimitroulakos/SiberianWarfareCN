@@ -16,6 +16,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         void Visit(GraphvizNodeProperty property);
         void Visit(GraphvizNodePropertyValue value);
         void Visit(GraphvizEdgeProperty property);
+        void Visit(GraphvizEdgePropertyValue value);
     }
     public class BaseASTVisitor : IGraphvizASTVisitor {
         public virtual void Visit(ASTLeaf leaf) {
@@ -41,6 +42,9 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         public virtual void Visit(GraphvizNodePropertyValue value) {
             // Default implementation does nothing
         }
+        public virtual void Visit(GraphvizEdgePropertyValue value) {
+            // Default implementation does nothing
+        }
         public virtual void Visit(GraphvizEdgeProperties property) {
             // Default implementation does nothing
             VisitChildren(property);
@@ -62,12 +66,9 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         StreamWriter _writer;
         private string _filename;
-        private Dictionary<string, List<string>> _nodePropertiesText;
-        private Dictionary<string, List<string>> _edgePropertiesText;
 
         public GraphvizFileLayoutVisitor() {
-            _nodePropertiesText = new Dictionary<string, List<string>>();
-            _edgePropertiesText = new Dictionary<string, List<string>>();
+            
         }
 
         public void GenerateDot(string filename, GraphvizFileLayout graph) {
@@ -143,25 +144,54 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         public override void Visit(GraphvizEdgeProperties properties) {
             // Custom logic for visiting edge properties
             _writer.Write($" [ ");
-            VisitChildren(properties);
+            int i;
+            foreach (var property in
+                     properties.
+                         Children[GraphvizEdgeProperties.PROPERTIES].
+                         Cast<GraphvizEdgeProperty>()) {
+                i = 0;
+                foreach (var value in property.
+                             Children[GraphvizEdgeProperty.PROPERTY_VALUES].
+                             Cast<GraphvizEdgePropertyValue>()) {
+                    if (i++ > 0) _writer.Write(", ");
+                    Visit(property);
+                }
+            }
             _writer.Write(" ]");
         }
         public override void Visit(GraphvizNodeProperty property) {
             // Custom logic for visiting a single node property
             _writer.Write($"{property.PropertyName}= \"");
-            VisitChildren(property);
+            int i = 0;
+            foreach (GraphvizNodePropertyValue value in property.
+                         Children[GraphvizEdgeProperty.PROPERTY_VALUES].
+                         Cast<GraphvizNodePropertyValue>()) {
+                if (i++ > 0) _writer.Write("\n");
+                Visit(value);
+            }
             _writer.Write("\" ");
         }
 
         public override void Visit(GraphvizNodePropertyValue value) {
             // Custom logic for visiting a single node property value
-            _writer.Write($"{value.PropertyValue}\n");
+            _writer.Write($"{value.PropertyValue}");
+        }
+
+        public override void Visit(GraphvizEdgePropertyValue value) {
+            // Custom logic for visiting a single edge property value
+            _writer.Write($"{value.PropertyValue}");
         }
 
         public override void Visit(GraphvizEdgeProperty property) {
             // Custom logic for visiting a single edge property
             _writer.Write($"{property.PropertyName}= \"");
-            VisitChildren(property);
+            int i = 0;
+            foreach (GraphvizEdgePropertyValue value in property.
+                         Children[GraphvizEdgeProperty.PROPERTY_VALUES].
+                         Cast<GraphvizEdgePropertyValue>()) {
+                if (i++ > 0) _writer.Write("\n");
+                Visit(value);
+            }
             _writer.Write("\" ");
         }
     }

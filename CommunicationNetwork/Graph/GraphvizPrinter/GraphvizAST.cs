@@ -43,9 +43,15 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
     }
 
     public class GraphvizFileLayout : ASTComposite {
-        private string _graphType;
+
+        public enum GRAPHTYPE {
+            DIGRAPH,
+            GRAPH
+        }
+        private GRAPHTYPE _graphType;
+        public GRAPHTYPE GraphType => _graphType;
+
         private string _graphName;
-        public string GraphType => _graphType;
         public string GraphName => _graphName;
 
 
@@ -53,7 +59,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             EDGE_DEFINITIONS = 2, SUBGRAPH_DEFINITIONS = 3;
 
         
-        public GraphvizFileLayout(string name, string graphType) :
+        public GraphvizFileLayout(string name, GRAPHTYPE graphType) :
             base("GraphvizFileLayout") {
             _graphType = graphType;
             _graphName = name;

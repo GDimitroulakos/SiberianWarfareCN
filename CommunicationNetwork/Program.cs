@@ -2,11 +2,10 @@
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
 
-namespace CommunicationNetwork
-{
+namespace CommunicationNetwork {
     internal class Program {
         static void Main(string[] args) {
-           UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
+            UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
             Node node1 = new Node();
             Node node2 = new Node();
             Node node3 = new Node();
@@ -39,51 +38,28 @@ namespace CommunicationNetwork
             directedGraph.AddEdge(edge2);
             directedGraph.AddEdge(edge3);
             directedGraph.AddEdge(edge4);
+            directedGraph.AddEdge(edge5);
             directedGraph.AddEdge(edge6);
 
-            
-
-            /*DFSUndirected dfs = new DFSUndirected();
-            dfs.SetUnDirectedGraph(graph);
-            dfs.Execute();
-
-
-
-            UndirectedGraphGraphvizPrinter.ToDot(graph, "test.dot", new GraphvizPrinterSettings() {
-                ShowEdgeLabels = false,
-                ShowNodeLabels = true,
-                ShowNodeProperties = true,
-                ShowEdgeProperties = false
-            });
-            UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");*/
+            /*  DFSUndirected dfs = new DFSUndirected();
+                  dfs.SetUnDirectedGraph(graph);
+                  dfs.Execute();
+             */
 
             // Run DFS on directed graph
             DFSDirected dfsDirected = new DFSDirected();
             dfsDirected.SetDirectedGraph(directedGraph);
             dfsDirected.Execute();
-            
+
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(DFSDirected.MetadataKey);
-            //graphToDOTGeneration.AddNodeMetadataKey(DFSUndirected.MetadataKey); // ****DO BE REMOVED -- for testing purposes  ****
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
-            
+
             graphvizFileLayoutVisitor.GenerateDot("test_directed.dot", graphToDOTGeneration.DotFileAst);
             graphvizFileLayoutVisitor.GenerateGIF();
 
-
-
-            /*DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
-                new DFSDirectedGraphvizFixedSizePropertyPrinter(
-                    new DFSGraphvizNodePrinter() ));
-            DFSGraphvizEdgePrinter dgep = new DFSGraphvizEdgePrinter();
-            DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp,dgep);
-
-            // Print the directed graph to DOT and generate GIF
-            dgp.ToDot(directedGraph, "test_directed.dot");
-            dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif"); */
-
-
+            
         }
     }
 }

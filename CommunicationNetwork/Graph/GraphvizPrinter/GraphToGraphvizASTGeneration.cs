@@ -30,7 +30,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             if (graph == null) throw new ArgumentNullException(nameof(graph));
 
             string dotfilename = System.IO.Path.GetFileNameWithoutExtension(dotFileName);
-            _dotFileAST = new GraphvizFileLayout(dotfilename, "digraph");
+            _dotFileAST = new GraphvizFileLayout(dotfilename, GraphvizFileLayout.GRAPHTYPE.DIGRAPH);
             
             // Print nodes
             foreach (var node in graph.Nodes) {
@@ -65,8 +65,28 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             foreach (var edge in graph.Edges) {
                 int source = edge.Source.Serial;
                 int target = edge.Target.Serial;
-                var edgeNode = new GraphvizEdge(source.ToString(), target.ToString());
-                _dotFileAST.AddChild(GraphvizFileLayout.EDGE_DEFINITIONS, edgeNode);
+
+
+                // Create a new GraphvizEdge for each edge in the graph and add it to the AST
+                var newGraphvicEdge = new GraphvizEdge(source.ToString(), target.ToString());
+                _dotFileAST.AddChild(GraphvizFileLayout.EDGE_DEFINITIONS, newGraphvicEdge);
+
+
+                // For each edge add a properties node as a child
+                GraphvizEdgeProperties edgeProperties = new GraphvizEdgeProperties();
+                newGraphvicEdge.AddChild(GraphvizEdge.ATTRIBUTE_LIST, edgeProperties);
+
+                // A. Label Property
+                GraphvizEdgeProperty labelProperty = new GraphvizEdgeProperty("label");
+                edgeProperties.AddChild(GraphvizEdge.ATTRIBUTE_LIST, labelProperty);
+
+                // A1. Add the edge ID as the first value of the label property
+                GraphvizEdgePropertyValue labelValue =
+                    new GraphvizEdgePropertyValue(edge.Serial.ToString());
+                labelProperty.AddChild(GraphvizEdgeProperty.PROPERTY_VALUES, labelValue);
+
+
+
             }
         }
     }
