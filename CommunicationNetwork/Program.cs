@@ -47,12 +47,12 @@ namespace CommunicationNetwork {
              */
 
             // Run DFS on directed graph
-            DFSDirected dfsDirected = new DFSDirected();
-            dfsDirected.SetDirectedGraph(directedGraph);
+            DFS dfsDirected = new DFS();
+            dfsDirected.SetGraph(directedGraph);
             dfsDirected.Execute();
 
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            graphToDOTGeneration.AddNodeMetadataKey(DFSDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(DFS.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 

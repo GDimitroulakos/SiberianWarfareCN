@@ -261,6 +261,7 @@ namespace CommunicationNetwork.Graph {
         void RemoveNode(INode node);
         void RemoveEdge(IEdge edge);
         bool AreConnected(INode source, INode target);
+        IReadOnlyList<INode> GetNeighbors(INode node);
         bool HasNode(INode node);
         bool HasEdge(IEdge edge);
         IReadOnlyList<INode> Nodes { get; }
@@ -319,7 +320,7 @@ namespace CommunicationNetwork.Graph {
         public virtual bool AreConnected(INode source, INode target) {
             return storage.AreConnected(source, target);
         }
-
+        
         public bool HasNode(INode node) {
             return storage.HasNode(node);
         }
@@ -327,9 +328,11 @@ namespace CommunicationNetwork.Graph {
         public bool HasEdge(IEdge edge) {
             return storage.HasEdge(edge);
         }
+
+        public abstract IReadOnlyList<INode> GetNeighbors(INode node);
     }
 
-    public class BaseGraph<T> : BaseGraph, IGraph<T> {
+    public abstract class BaseGraph<T> : BaseGraph, IGraph<T> {
         public T Value { get; set; } // Generic value associated with the graph
         public BaseGraph(IGraphStorage storage, string name = null) : base(storage, name) {
             Value = default(T);
@@ -347,7 +350,7 @@ namespace CommunicationNetwork.Graph {
     }
 
     public interface IUndirectedGraph : IGraph {
-        IEnumerable<INode> GetNeighbors(INode node);
+        IReadOnlyList<INode> GetNeighbors(INode node);
         IEnumerable<IEdge> GetEdges(INode node);
     }
 
@@ -357,7 +360,7 @@ namespace CommunicationNetwork.Graph {
         public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) : base(storage, name) {
             undirectedStorage = storage;
         }
-        public IEnumerable<INode> GetNeighbors(INode node) {
+        public override IReadOnlyList<INode> GetNeighbors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
@@ -430,6 +433,10 @@ namespace CommunicationNetwork.Graph {
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             return directedStorage.GetOutgoingEdges(node);
+        }
+
+        public override IReadOnlyList<INode> GetNeighbors(INode node) {
+            return GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
         }
 
         public IEnumerable<IEdge> GetIncomingEdges(INode node) {
