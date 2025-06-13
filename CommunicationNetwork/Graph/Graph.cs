@@ -177,7 +177,6 @@ namespace CommunicationNetwork.Graph {
             }
         }
     }
-
     public class UndirectedAdjacencyListStorage : AdjacencyListStorage, IUndirectedGraphStorage {
         Dictionary<INode, List<IEdge>> edgesByNode = new Dictionary<INode, List<IEdge>>();
 
@@ -292,7 +291,6 @@ namespace CommunicationNetwork.Graph {
             return $"{GetType().Name} '{Name}' [Nodes: {NodeCount}, Edges: {EdgeCount}]";
         }
 
-
         protected BaseGraph(IGraphStorage storage, string name = null) {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
             Serial = Interlocked.Increment(ref serialCounter);
@@ -357,7 +355,8 @@ namespace CommunicationNetwork.Graph {
     public class UnDirectedGraph : BaseGraph, IUndirectedGraph {
         readonly IUndirectedGraphStorage undirectedStorage;
 
-        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) : base(storage, name) {
+        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) :
+            base(storage, name) {
             undirectedStorage = storage;
         }
         public override IReadOnlyList<INode> GetNeighbors(INode node) {

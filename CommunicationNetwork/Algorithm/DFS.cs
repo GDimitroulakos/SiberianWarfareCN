@@ -68,7 +68,6 @@ namespace CommunicationNetwork.Algorithms {
             }
         }
 
-        
         public override void Execute() {
             Initialize();
             
