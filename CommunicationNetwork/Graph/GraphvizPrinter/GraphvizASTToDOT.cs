@@ -9,7 +9,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
     
     public class GraphvizFileLayoutVisitor : BaseASTVisitor {
 
-        StreamWriter _writer;
+        TextWriter _writer;
         private string _filename;
         GraphvizFileLayout _graphLayout;
 
@@ -18,7 +18,13 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
 
         public void GenerateDot(string filename, GraphvizFileLayout graph) {
-            _writer = new StreamWriter(filename);
+            if (filename == null) {
+                _writer = Console.Out;
+            }
+            else {
+                _writer = new StreamWriter(filename);
+            }
+
             _graphLayout = graph;
             _filename = filename;
             Visit(graph);
@@ -94,14 +100,16 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                          Children[GraphvizProperties.PROPERTIES].
                          Cast<GraphvizProperty>()) {
                 i = 0;
+                _writer.Write($"{property.PropertyName} = \"");
                 foreach (var value in property.
                              Children[GraphvizProperty.PROPERTY_VALUES].
                              Cast<GraphvizPropertyValue>()) {
                     if (i++ > 0) _writer.Write(", ");
                     m_parents.Push(properties);
-                    Visit(property);
+                    Visit(value);
                     m_parents.Pop();
                 }
+                _writer.Write("\" ");
             }
             // If the parent is not a GraphvizFileLayout, close the properties with a bracket
             if (m_parents.Peek() is not GraphvizFileLayout) {

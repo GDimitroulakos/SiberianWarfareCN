@@ -129,8 +129,6 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                 labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, newValue);
             }
         }
-        
-        
 
         private static GraphvizProperties CreatePropertiesAndAttach(ASTComposite astCompositeNode) {
             // For each node add a properties node as a child
