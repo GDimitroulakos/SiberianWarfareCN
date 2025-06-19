@@ -11,6 +11,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         private GraphvizFileLayout _dotFileAST;
         private List<object> _nodeMetadataKeys = new List<object>();
         private List<object> _graphMetadataKeys = new List<object>();
+        private List<object> _edgeMetadataKeys = new List<object>();
+
 
 
         public GraphvizFileLayout DotFileAst => _dotFileAST;
@@ -19,6 +21,12 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (!_nodeMetadataKeys.Contains(key)) {
                 _nodeMetadataKeys.Add(key);
+            }
+        }
+        public void AddEdgeMetadataKey(object key) {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (!_edgeMetadataKeys.Contains(key)) {
+                _edgeMetadataKeys.Add(key);
             }
         }
         public void AddGraphMetadataKey(object key) {
@@ -35,12 +43,19 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             if (key == null) throw new ArgumentNullException(nameof(key));
             _graphMetadataKeys.Remove(key);
         }
+        public void RemoveEdgeMetadataKey(object key) {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            _edgeMetadataKeys.Remove(key);
+        }
 
         public void ClearNodeMetadataKeys() {
             _nodeMetadataKeys.Clear();
         }
         public void ClearGraphMetadataKeys() {
             _graphMetadataKeys.Clear();
+        }
+        public void ClearEdgeMetadataKeys() {
+            _edgeMetadataKeys.Clear();
         }
 
         public void ToAST(IGraph graph, string dotFileName) {
@@ -53,10 +68,10 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
                 var newGraphvizNode = CreateNewGraphvizNodeToAST(node);
 
                 // For each node add a properties node as a child
-                var newProperties = CreateNodePropertiesAndAttachToNode(newGraphvizNode);
+                var newProperties = CreatePropertiesAndAttach(newGraphvizNode);
 
                 // Create a label property for the node
-                var labelProperty = CreateNodeLabelProperty(newProperties, node);
+                var labelProperty = CreateLabelProperty(newProperties, node);
 
                 //  Augment the label property with metadata if available
                 AugmentNodeLabelPropertyWithMetadata(node, labelProperty);
@@ -66,29 +81,27 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             foreach (var edge in graph.Edges) {
                 var newGraphvicEdge = CreateNewGraphvicEdgeToAST(edge);
 
-                var edgeProperties = CreateEdgePropertiesAndAttachToEdge(newGraphvicEdge);
+                var edgeProperties = CreatePropertiesAndAttach(newGraphvicEdge);
 
-                CreateEdgeLabelProperty(edgeProperties, edge);
+                CreateLabelProperty(edgeProperties, edge);
             }
         }
+        
+        private static GraphvizProperty CreateLabelProperty(GraphvizProperties newProperties, IGraphElement element) {
+            // A. Create a label property for the node
+            GraphvizProperty labelProperty = new GraphvizProperty("label");
+            // Add the label property to the node properties
+            newProperties.AddChild(GraphvizFileLayout.PROPERTIES, labelProperty);
 
-        private static void CreateEdgeLabelProperty(GraphvizEdgeProperties edgeProperties, IEdge edge) {
-            // A. Label Property
-            GraphvizEdgeProperty labelProperty = new GraphvizEdgeProperty("label");
-            edgeProperties.AddChild(GraphvizEdge.ATTRIBUTE_LIST, labelProperty);
+            // Create the label property value 
+            GraphvizPropertyValue labelValue =
+                new GraphvizPropertyValue(element.Serial.ToString());
 
-            // A1. Add the edge ID as the first value of the label property
-            GraphvizEdgePropertyValue labelValue =
-                new GraphvizEdgePropertyValue(edge.Serial.ToString());
-            labelProperty.AddChild(GraphvizEdgeProperty.PROPERTY_VALUES, labelValue);
+            // Add the label value to the label property
+            labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, labelValue);
+            return labelProperty;
         }
 
-        private static GraphvizEdgeProperties CreateEdgePropertiesAndAttachToEdge(GraphvizEdge newGraphvicEdge) {
-            // For each edge add a properties node as a child
-            GraphvizEdgeProperties edgeProperties = new GraphvizEdgeProperties();
-            newGraphvicEdge.AddChild(GraphvizEdge.ATTRIBUTE_LIST, edgeProperties);
-            return edgeProperties;
-        }
 
         private GraphvizEdge CreateNewGraphvicEdgeToAST(IEdge edge) {
             int source = edge.Source.Serial;
@@ -99,73 +112,35 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             return newGraphvicEdge;
         }
 
-        private void AugmentNodeLabelPropertyWithMetadata(INode node, GraphvizNodeProperty labelProperty) {
+        private void AugmentNodeLabelPropertyWithMetadata(INode node, GraphvizProperty labelProperty) {
             // A2. Add property values to the label property
             foreach (var key in _nodeMetadataKeys) {
-                GraphvizNodePropertyValue newValue =
-                    new GraphvizNodePropertyValue(node.MetaData[key].ToString());
-                labelProperty.AddChild(GraphvizNodeProperty.PROPERTY_VALUES, newValue);
+                GraphvizPropertyValue newValue =
+                    new GraphvizPropertyValue(node.MetaData[key].ToString());
+                labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, newValue);
             }
         }
 
-        private void AugmentGraphLabelPropertyWithMetadata(IGraph graph, GraphvizGraphProperty labelProperty) {
+        private void AugmentGraphLabelPropertyWithMetadata(IGraph graph, GraphvizProperty labelProperty) {
             // A2. Add property values to the label property
             foreach (var key in _graphMetadataKeys) {
-                GraphvizGraphPropertyValue newValue =
-                    new GraphvizGraphPropertyValue(graph.MetaData[key].ToString());
-                labelProperty.AddChild(GraphvizNodeProperty.PROPERTY_VALUES, newValue);
+                GraphvizPropertyValue newValue =
+                    new GraphvizPropertyValue(graph.MetaData[key].ToString());
+                labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, newValue);
             }
         }
+        
+        
 
-        private static GraphvizNodeProperty CreateNodeLabelProperty(GraphvizNodeProperties newProperties, INode node) {
-            // A. Create a label property for the node
-            GraphvizNodeProperty labelProperty = new GraphvizNodeProperty("label");
-            // Add the label property to the node properties
-            newProperties.AddChild(GraphvizNode.ATTRIBUTE_LIST, labelProperty);
-
-            // Create the label property value 
-            GraphvizNodePropertyValue labelValue =
-                new GraphvizNodePropertyValue(node.Serial.ToString());
-            // Add the label value to the label property
-            labelProperty.AddChild(GraphvizNodeProperty.PROPERTY_VALUES, labelValue);
-            return labelProperty;
-        }
-
-        private static GraphvizGraphProperty CreateGraphLabelProperty(GraphvizGraphProperties newProperties, IGraph graph) {
-            // A. Create a label property for the node
-            GraphvizGraphProperty labelProperty = new GraphvizGraphProperty("label");
-            // Add the label property to the node properties
-            newProperties.AddChild(GraphvizFileLayout.GLOBAL_ATTRIBUTES, labelProperty);
-
-            // Create the label property value 
-            GraphvizGraphPropertyValue labelValue =
-                new GraphvizGraphPropertyValue(graph.Serial.ToString());
-
-            // Add the label value to the label property
-            labelProperty.AddChild(GraphvizGraphProperty.PROPERTY_VALUES, labelValue);
-            return labelProperty;
-        }
-
-        private static GraphvizNodeProperties CreateNodePropertiesAndAttachToNode(GraphvizNode newGraphvizNode) {
+        private static GraphvizProperties CreatePropertiesAndAttach(ASTComposite astCompositeNode) {
             // For each node add a properties node as a child
-            GraphvizNodeProperties newProperties = new GraphvizNodeProperties();
+            GraphvizProperties newProperties = new GraphvizProperties();
             // Add the properties node to the new GraphvizNode
-            newGraphvizNode.AddChild(GraphvizNode.ATTRIBUTE_LIST, newProperties);
+            astCompositeNode.AddChild(GraphvizNode.ATTRIBUTE_LIST, newProperties);
             // return the new properties node to be used later for extending the graph
             return newProperties;
         }
-
-        private static GraphvizGraphProperties CreateGraphPropertiesAndAttachToGraph(
-            GraphvizFileLayout graphvizFileLayout) {
-            // For each node add a properties node as a child
-            GraphvizGraphProperties newProperties = new GraphvizGraphProperties();
-            // Add the properties node to the new GraphvizNode
-            graphvizFileLayout.AddChild(GraphvizFileLayout.GLOBAL_ATTRIBUTES, newProperties);
-            // return the new properties node to be used later for extending the graph
-            return newProperties;
-        }
-
-
+        
         private GraphvizNode CreateNewGraphvizNodeToAST(INode node) {
             // Create a new GraphvizNode for the given node 
             GraphvizNode newGraphvizNode = new GraphvizNode(node.Serial.ToString());
@@ -189,10 +164,10 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             _dotFileAST = new GraphvizFileLayout(dotfilename, gtype);
 
             // Add properties to the GraphvizFileLayout
-            var newProperties = CreateGraphPropertiesAndAttachToGraph(_dotFileAST);
+            var newProperties = CreatePropertiesAndAttach(_dotFileAST);
 
             // Create a label property for the graph
-            var labelProperty = CreateGraphLabelProperty(newProperties,graph);
+            var labelProperty = CreateLabelProperty(newProperties,graph);
 
             // Augment the label property with metadata if available
             AugmentGraphLabelPropertyWithMetadata(graph, labelProperty);
