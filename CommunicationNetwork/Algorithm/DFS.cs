@@ -70,7 +70,10 @@ namespace CommunicationNetwork.Algorithms {
 
         public override void Execute() {
             Initialize();
-            
+            if (_graph == null || !_graph.Nodes.Any()) {
+                throw new InvalidOperationException("Graph is not set or is empty.");
+            }
+
             foreach (INode node in _graph.Nodes) {
                 if (Color(node) == "WHITE") {
                     DFSVisit(node);
