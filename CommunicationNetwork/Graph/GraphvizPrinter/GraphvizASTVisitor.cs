@@ -66,6 +66,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         StreamWriter _writer;
         private string _filename;
+        GraphvizFileLayout _graphLayout;
 
         public GraphvizFileLayoutVisitor() {
             
@@ -73,6 +74,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         public void GenerateDot(string filename, GraphvizFileLayout graph) {
             _writer = new StreamWriter(filename);
+            _graphLayout = graph;
             _filename = filename;
             Visit(graph);
             _writer.Close();
@@ -120,7 +122,14 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
 
         public override void Visit(GraphvizEdge edge) {
-            _writer.Write($" {edge.SourceNodeID} -> {edge.TargetNodeID} ");
+            switch (_graphLayout.GraphType) {
+                case GraphvizFileLayout.GRAPHTYPE.DIGRAPH:
+                    _writer.Write($" {edge.SourceNodeID} -> {edge.TargetNodeID} ");
+                    break;
+                case GraphvizFileLayout.GRAPHTYPE.GRAPH:
+                    _writer.Write($" {edge.SourceNodeID} -- {edge.TargetNodeID} ");
+                    break;
+            }
             VisitChildren(edge);
             _writer.WriteLine(";");
         }
