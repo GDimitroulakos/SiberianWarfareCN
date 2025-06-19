@@ -27,6 +27,17 @@ namespace CommunicationNetwork.Algorithm {
             // and the value is the list of nodes in the path.
             public Dictionary<INode, List<INode>> Paths;
             public INode Source; // The source node from which BFS was initiated
+
+            public override string ToString() {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("BFS Graph MetaData:");
+                sb.AppendLine($"Source: {Source?.Name}");
+                sb.AppendLine("Paths:");
+                foreach (var kvp in Paths) {
+                    sb.AppendLine($"{kvp.Key.Name}: {string.Join(" -> ", kvp.Value.Select(n => n.Name))}");
+                }
+                return sb.ToString();
+            }
         }
 
         // 3. Algorithm state
@@ -124,9 +135,9 @@ namespace CommunicationNetwork.Algorithm {
                 // Dequeue the next node
                 current = queue.Dequeue();
                 foreach (INode neighbor in _graph.GetNeighbors(current)) {
-                    if (Color(current) == "WHITE") {
-                        SetColor(current, "GRAY");
-                        SetDistance(current, Distance(current) + 1);
+                    if (Color(neighbor) == "WHITE") {
+                        SetColor(neighbor, "GRAY");
+                        SetDistance(neighbor, Distance(current) + 1);
                         SetParent(neighbor, current);
                         queue.Enqueue(neighbor);
                     }

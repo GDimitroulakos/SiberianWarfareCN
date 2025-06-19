@@ -1,4 +1,5 @@
-﻿using CommunicationNetwork.Algorithms;
+﻿using CommunicationNetwork.Algorithm;
+using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
 
@@ -51,15 +52,26 @@ namespace CommunicationNetwork {
             dfsDirected.SetGraph(directedGraph);
             dfsDirected.Execute();
 
+            BFS bfsDirected = new BFS();
+            bfsDirected.SetGraph(directedGraph);
+            bfsDirected.SetSource(node1);
+            bfsDirected.Execute();
+
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(DFS.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(BFS.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(BFS.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 
             graphvizFileLayoutVisitor.GenerateDot("test_directed.dot", graphToDOTGeneration.DotFileAst);
             graphvizFileLayoutVisitor.GenerateGIF();
 
+
+           
+
             
+
         }
     }
 }

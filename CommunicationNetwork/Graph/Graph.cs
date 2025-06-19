@@ -435,7 +435,8 @@ namespace CommunicationNetwork.Graph {
         }
 
         public override IReadOnlyList<INode> GetNeighbors(INode node) {
-            return GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
+            List<INode> neighbors = GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
+            return neighbors;
         }
 
         public IEnumerable<IEdge> GetIncomingEdges(INode node) {

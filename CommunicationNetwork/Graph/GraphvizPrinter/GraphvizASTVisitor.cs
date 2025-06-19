@@ -13,7 +13,10 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         void Visit(GraphvizEdge edge);
         void Visit(GraphvizNodeProperties properties);
         void Visit(GraphvizEdgeProperties properties);
+        void Visit(GraphvizGraphProperties properties);
         void Visit(GraphvizNodeProperty property);
+        void Visit(GraphvizGraphProperty property);
+        void Visit(GraphvizGraphPropertyValue value);
         void Visit(GraphvizNodePropertyValue value);
         void Visit(GraphvizEdgeProperty property);
         void Visit(GraphvizEdgePropertyValue value);
@@ -38,6 +41,9 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
         public virtual void Visit(GraphvizNodeProperty property) {
             VisitChildren(property);
+        } public virtual void Visit(GraphvizGraphProperty property) {
+            // Default implementation does nothing
+            VisitChildren(property);
         }
         public virtual void Visit(GraphvizNodePropertyValue value) {
             // Default implementation does nothing
@@ -45,10 +51,17 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         public virtual void Visit(GraphvizEdgePropertyValue value) {
             // Default implementation does nothing
         }
+        public virtual void Visit(GraphvizGraphPropertyValue value) {
+            // Default implementation does nothing
+        }
         public virtual void Visit(GraphvizEdgeProperties property) {
             // Default implementation does nothing
             VisitChildren(property);
-        } 
+        }
+        public virtual void Visit(GraphvizGraphProperties properties) {
+            // Default implementation does nothing
+            VisitChildren(properties);
+        }
         public virtual void Visit(GraphvizEdgeProperty property) {
             // Default implementation does nothing
         }
@@ -82,8 +95,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
         public void GenerateGIF() {
             // Extract the filename without extension and augment with .dot
-            string dotFilePath = System.IO.Path.ChangeExtension(_filename, ".dot");
-            string outputGifPath = System.IO.Path.ChangeExtension(_filename, ".gif");
+            string dotFilePath = Path.ChangeExtension(_filename, ".dot");
+            string outputGifPath = Path.ChangeExtension(_filename, ".gif");
 
             // Configure the process start info for running the dot command
             var processStartInfo = new System.Diagnostics.ProcessStartInfo {
@@ -134,6 +147,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             _writer.WriteLine(";");
         }
 
+        
         public override void Visit(GraphvizNodeProperties properties) {
             // Custom logic for visiting node properties
             _writer.Write($" [ ");
@@ -182,12 +196,32 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Iterate through each value in the node property and output them
             // its in own line. VisitChildren cannot do that
             foreach (GraphvizNodePropertyValue value in property.
-                         Children[GraphvizEdgeProperty.PROPERTY_VALUES].
+                         Children[GraphvizNodeProperty.PROPERTY_VALUES].
                          Cast<GraphvizNodePropertyValue>()) {
                 if (i++ > 0) _writer.Write("\n");
                 Visit(value);
             }
             _writer.Write("\" ");
+        }
+
+        public override void Visit(GraphvizGraphProperty property) {
+            // Custom logic for visiting a single node property
+            _writer.Write($"{property.PropertyName}= \"");
+            int i = 0;
+            // Iterate through each value in the node property and output them
+            // its in own line. VisitChildren cannot do that
+            foreach (GraphvizGraphPropertyValue value in property.
+                         Children[GraphvizFileLayout.GLOBAL_ATTRIBUTES].
+                         Cast<GraphvizGraphPropertyValue>()) {
+                if (i++ > 0) _writer.Write("\n");
+                Visit(value);
+            }
+            _writer.WriteLine("\" ");
+        }
+
+        public override void Visit(GraphvizGraphPropertyValue value) {
+            // Custom logic for visiting a single node property value
+            _writer.Write($"{value.PropertyValue}");
         }
 
         public override void Visit(GraphvizNodePropertyValue value) {
