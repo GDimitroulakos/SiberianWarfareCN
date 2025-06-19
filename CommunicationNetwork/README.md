@@ -12,6 +12,9 @@
 9. [Step 8: Creating Visual Output](#step-8-creating-visual-output)
 10. [Understanding the Results](#understanding-the-results)
 11. [Complete Example Code](#complete-example-code)
+12. [Advanced Tutorial: Creating Custom Algorithm Classes]
+13. [Troubleshooting]
+
 
 ## Prerequisites
 
@@ -484,11 +487,362 @@ static void Main(string[] args)
 2. Verify DFS ran by checking if nodes have metadata: `node.MetaData.ContainsKey(DFS.MetadataKey)`
 3. Test Graphviz installation: run `dot -V` in command line
 
+## Advanced Tutorial: Creating Custom Algorithm Classes
+
+This advanced section teaches you how to build your own graph algorithms following the established patterns in the codebase.
+
+## Creating Custom Algorithm Classes
+
+Now that you understand how DFS works, let's learn how to create your own algorithm classes following the same pattern.
+
+### Step 1: Analyze the DFS Structure
+
+Let's break down the key components of the DFS class:
+
+```csharp
+public class DFS : BaseAlgorithm {
+    // 1. METADATA KEY - Unique identifier for this algorithm
+    public static string MetadataKey => "DFS";
+    
+    // 2. DATA STORAGE - Custom class to hold algorithm-specific data
+    public class DFS_NodeMetaData {
+        public string Color;
+        public int TimeDiscovered;
+        public int TimeFinished;
+        
+        public override string ToString() {
+            return $"DFS NodeMetaData \nColor={Color}\nTimeDiscovered={TimeDiscovered}\nTimeFinished={TimeFinished}";
+        }
+    }
+    
+    // 3. GRAPH REFERENCE - The graph being processed
+    private IGraph _graph;
+    
+    // 4. ALGORITHM STATE - Variables needed during execution
+    private int time = 0;
+    
+    // 5. ACCESSOR METHODS - Static methods to read results
+    public static string Color(INode node) { /* implementation */ }
+    public static int TimeDiscovered(INode node) { /* implementation */ }
+    public static int TimeFinished(INode node) { /* implementation */ }
+    
+    // 6. SETTER METHODS - Private methods to modify state
+    private void SetColor(INode node, string color) { /* implementation */ }
+    
+    // 7. REQUIRED OVERRIDES - From BaseAlgorithm
+    public override void Initialize() { /* setup */ }
+    public override void Execute() { /* main logic */ }
+}
+```
+
+### Step 2: Create a Template for New Algorithms
+
+Here's a step-by-step template for creating any graph algorithm:
+
+```csharp
+public class YourAlgorithm : BaseAlgorithm {
+    
+    // STEP 1: Define your unique metadata key
+    public static string MetadataKey => "YourAlgorithm";
+    
+    // STEP 2: Create metadata class to store results
+    public class YourAlgorithm_NodeMetaData {
+        // Add properties specific to your algorithm
+        public string SomeProperty;
+        public int SomeValue;
+        public bool SomeFlag;
+        
+        // Always override ToString for visualization
+        public override string ToString() {
+            return $"YourAlgorithm Results\nProperty={SomeProperty}\nValue={SomeValue}\nFlag={SomeFlag}";
+        }
+    }
+    
+    // STEP 3: Add graph reference and algorithm state
+    private IGraph _graph;
+    private int algorithmState = 0; // Example state variable
+    
+    // STEP 4: Create accessor methods (static for easy access)
+    public static string GetSomeProperty(INode node) {
+        return ((YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey]).SomeProperty;
+    }
+    
+    public static int GetSomeValue(INode node) {
+        return ((YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey]).SomeValue;
+    }
+    
+    // STEP 5: Create setter methods (private for encapsulation)
+    private void SetSomeProperty(INode node, string value) {
+        var metaData = (YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey];
+        metaData.SomeProperty = value;
+    }
+    
+    // STEP 6: Add graph setter method
+    public void SetGraph(IGraph graph) {
+        _graph = graph;
+    }
+    
+    // STEP 7: Implement required abstract methods
+    public override void Initialize() {
+        // Reset algorithm state
+        algorithmState = 0;
+        
+        // Initialize metadata for all nodes
+        foreach (INode node in _graph.Nodes) {
+            node.MetaData[MetadataKey] = new YourAlgorithm_NodeMetaData() {
+                SomeProperty = "InitialValue",
+                SomeValue = -1,
+                SomeFlag = false
+            };
+        }
+    }
+    
+    public override void Execute() {
+        // Call Initialize first
+        Initialize();
+        
+        // Implement your algorithm logic here
+        foreach (INode node in _graph.Nodes) {
+            // Process each node according to your algorithm
+            ProcessNode(node);
+        }
+    }
+    
+    // STEP 8: Add your algorithm-specific helper methods
+    private void ProcessNode(INode node) {
+        // Your algorithm logic here
+        SetSomeProperty(node, "Processed");
+        algorithmState++;
+    }
+}
+```
+
+### Step 3: Example - Creating a BFS Algorithm
+
+Let's create a complete Breadth-First Search algorithm following this pattern:
+
+```csharp
+public class BFS : BaseAlgorithm {
+    
+    // 1. Unique metadata key
+    public static string MetadataKey => "BFS";
+    
+    // 2. Metadata structure for BFS results
+    public class BFS_NodeMetaData {
+        public string Color;      // WHITE, GRAY, BLACK
+        public int Distance;      // Distance from source
+        public INode Parent;      // Parent in BFS tree
+        
+        public override string ToString() {
+            string parentName = Parent?.Name ?? "null";
+            return $"BFS Results\nColor={Color}\nDistance={Distance}\nParent={parentName}";
+        }
+    }
+    
+    // 3. Algorithm state
+    private IGraph _graph;
+    private Queue<INode> queue;
+    
+    // 4. Accessor methods
+    public static string Color(INode node) {
+        return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
+    }
+    
+    public static int Distance(INode node) {
+        return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Distance;
+    }
+    
+    public static INode Parent(INode node) {
+        return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Parent;
+    }
+    
+    // 5. Setter methods
+    private void SetColor(INode node, string color) {
+        var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+        metaData.Color = color;
+    }
+    
+    private void SetDistance(INode node, int distance) {
+        var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+        metaData.Distance = distance;
+    }
+    
+    private void SetParent(INode node, INode parent) {
+        var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+        metaData.Parent = parent;
+    }
+    
+    // 6. Graph setter
+    public void SetGraph(IGraph graph) {
+        _graph = graph;
+    }
+    
+    // 7. Required overrides
+    public override void Initialize() {
+        queue = new Queue<INode>();
+        
+        foreach (INode node in _graph.Nodes) {
+            node.MetaData[MetadataKey] = new BFS_NodeMetaData() {
+                Color = "WHITE",
+                Distance = int.MaxValue, // Infinity
+                Parent = null
+            };
+        }
+    }
+    
+    public override void Execute() {
+        Initialize();
+        
+        // Start BFS from first node (or you could add a SetSource method)
+        if (_graph.Nodes.Count > 0) {
+            BFSFromSource(_graph.Nodes[0]);
+        }
+    }
+    
+    // 8. Algorithm-specific methods
+    private void BFSFromSource(INode source) {
+        SetColor(source, "GRAY");
+        SetDistance(source, 0);
+        SetParent(source, null);
+        queue.Enqueue(source);
+        
+        while (queue.Count > 0) {
+            INode current = queue.Dequeue();
+            
+            foreach (INode neighbor in _graph.GetNeighbors(current)) {
+                if (Color(neighbor) == "WHITE") {
+                    SetColor(neighbor, "GRAY");
+                    SetDistance(neighbor, Distance(current) + 1);
+                    SetParent(neighbor, current);
+                    queue.Enqueue(neighbor);
+                }
+            }
+            
+            SetColor(current, "BLACK");
+        }
+    }
+}
+```
+
+### Step 4: Using Your Custom Algorithm
+
+Once you've created your algorithm class, use it exactly like DFS:
+
+```csharp
+static void Main(string[] args) {
+    // ... create graph as before ...
+    
+    // Run your custom BFS algorithm
+    BFS bfs = new BFS();
+    bfs.SetGraph(directedGraph);
+    bfs.Execute();
+    
+    // Visualize BFS results
+    GraphToGraphvizASTGeneration bfsVisualization = new GraphToGraphvizASTGeneration();
+    bfsVisualization.AddNodeMetadataKey(BFS.MetadataKey);  // Use BFS metadata
+    bfsVisualization.ToAST(directedGraph, "graph_with_bfs.dot");
+    
+    GraphvizFileLayoutVisitor bfsVisitor = new GraphvizFileLayoutVisitor();
+    bfsVisitor.GenerateDot("graph_with_bfs.dot", bfsVisualization.DotFileAst);
+    bfsVisitor.GenerateGIF();
+    
+    // You can even run multiple algorithms on the same graph!
+    DFS dfs = new DFS();
+    dfs.SetGraph(directedGraph);
+    dfs.Execute();
+    
+    // Visualize both DFS and BFS results
+    GraphToGraphvizASTGeneration multiAlgorithm = new GraphToGraphvizASTGeneration();
+    multiAlgorithm.AddNodeMetadataKey(DFS.MetadataKey);
+    multiAlgorithm.AddNodeMetadataKey(BFS.MetadataKey);
+    multiAlgorithm.ToAST(directedGraph, "graph_with_both_algorithms.dot");
+    
+    GraphvizFileLayoutVisitor multiVisitor = new GraphvizFileLayoutVisitor();
+    multiVisitor.GenerateDot("graph_with_both_algorithms.dot", multiAlgorithm.DotFileAst);
+    multiVisitor.GenerateGIF();
+}
+```
+
+### Step 5: Algorithm Design Considerations
+
+When creating your own algorithms, consider:
+
+#### 5.1 Metadata Design
+- **What information does your algorithm need to store per node?**
+  - DFS: Color, discovery time, finish time
+  - BFS: Color, distance, parent
+  - Dijkstra: Distance, parent, processed flag
+  - Topological Sort: In-degree, processing order
+
+#### 5.2 Algorithm State
+- **What global state does your algorithm need?**
+  - DFS: Current time counter
+  - BFS: Queue of nodes to process
+  - Dijkstra: Priority queue, set of unprocessed nodes
+
+#### 5.3 Graph Type Requirements
+- **Does your algorithm work on directed, undirected, or both?**
+- **Do you need weighted edges?** (You might need `IEdge<T>` where T is a weight type)
+
+#### 5.4 Initialization Strategy
+- **How do you handle multiple components?**
+- **Do you need a specific starting node?**
+- **What are the default/initial values?**
+
+### Step 6: Advanced Algorithm Patterns
+
+#### Pattern 1: Source-Based Algorithms (BFS, Dijkstra)
+```csharp
+public void SetSource(INode source) {
+    _sourceNode = source;
+}
+
+public override void Execute() {
+    Initialize();
+    if (_sourceNode != null) {
+        RunFromSource(_sourceNode);
+    }
+}
+```
+
+#### Pattern 2: Weighted Graph Algorithms
+```csharp
+// For algorithms that need edge weights
+public class Dijkstra : BaseAlgorithm {
+    // Assume edges implement IEdge<double> for weights
+    
+    private double GetEdgeWeight(IEdge edge) {
+        if (edge is IEdge<double> weightedEdge) {
+            return weightedEdge.Value;
+        }
+        return 1.0; // Default weight
+    }
+}
+```
+
+#### Pattern 3: Algorithms with Complex State
+```csharp
+public class StronglyConnectedComponents : BaseAlgorithm {
+    private Stack<INode> finishStack;
+    private Dictionary<INode, int> componentMap;
+    private int componentCount;
+    
+    // Multiple passes over the graph
+    public override void Execute() {
+        Initialize();
+        FirstPass();  // DFS to get finish order
+        SecondPass(); // DFS on transpose graph
+    }
+}
+```
+
 ## Next Steps
 
-Once you master this basic tutorial, you can:
+Once you master this basic tutorial and algorithm creation, you can:
 - Create more complex graph structures
-- Implement additional algorithms (BFS, Dijkstra, etc.)
+- Implement additional algorithms (Dijkstra, Topological Sort, etc.)
 - Experiment with different visualization formats
 - Add custom metadata to nodes and edges
 - Create interactive graph applications
+- Build algorithm comparison tools
+- Implement graph generation algorithms
