@@ -57,10 +57,25 @@ namespace CommunicationNetwork {
             bfsDirected.SetSource(node1);
             bfsDirected.Execute();
 
+            BellmanFord.SetWeight(edge1,2);
+            BellmanFord.SetWeight(edge2, 3);
+            BellmanFord.SetWeight(edge3, 1);
+            BellmanFord.SetWeight(edge4, 4);
+            BellmanFord.SetWeight(edge5, 2);
+            BellmanFord.SetWeight(edge6, 5);
+
+
+            BellmanFord bellmanFordDirected = new BellmanFord();
+            bellmanFordDirected.SetStart(node1);
+            bellmanFordDirected.SetGraph(directedGraph);
+            bellmanFordDirected.Execute();
+
+
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(DFS.MetadataKey);
             graphToDOTGeneration.AddNodeMetadataKey(BFS.MetadataKey);
             graphToDOTGeneration.AddGraphMetadataKey(BFS.MetadataKey);
+            graphToDOTGeneration.AddEdgeMetadataKey(BellmanFord.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 

@@ -51,7 +51,8 @@ namespace CommunicationNetwork.Algorithms {
         }
         public static int TimeFinished(INode node) {
             return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).TimeFinished;
-        } private void SetTimeFinished(INode node, int t) {
+        } 
+        private void SetTimeFinished(INode node, int t) {
             var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
             metaData.TimeFinished = t;
         }

@@ -79,11 +79,20 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
 
             // Print edges
             foreach (var edge in graph.Edges) {
+                // Create a new GraphvizEdge for each edge in the graph and add it to the AST
                 var newGraphvicEdge = CreateNewGraphvicEdgeToAST(edge);
 
+                // For each edge add a properties node as a child
                 var edgeProperties = CreatePropertiesAndAttach(newGraphvicEdge);
 
-                CreateLabelProperty(edgeProperties, edge);
+                // Create a label property for the edge
+                var labelProperty = CreateLabelProperty(edgeProperties, edge);
+
+                // Augment the label property with metadata if available
+                AugmentEdgeLabelPropertyWithMetadata(edge, labelProperty);
+
+
+
             }
         }
         
@@ -117,6 +126,15 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             foreach (var key in _nodeMetadataKeys) {
                 GraphvizPropertyValue newValue =
                     new GraphvizPropertyValue(node.MetaData[key].ToString());
+                labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, newValue);
+            }
+        }
+
+        private void AugmentEdgeLabelPropertyWithMetadata(IEdge edge, GraphvizProperty labelProperty) {
+            // A2. Add property values to the label property
+            foreach (var key in _edgeMetadataKeys) {
+                GraphvizPropertyValue newValue =
+                    new GraphvizPropertyValue(edge.MetaData[key].ToString());
                 labelProperty.AddChild(GraphvizProperty.PROPERTY_VALUES, newValue);
             }
         }

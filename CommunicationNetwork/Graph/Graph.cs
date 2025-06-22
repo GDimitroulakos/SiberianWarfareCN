@@ -263,6 +263,7 @@ namespace CommunicationNetwork.Graph {
         IReadOnlyList<INode> GetNeighbors(INode node);
         bool HasNode(INode node);
         bool HasEdge(IEdge edge);
+        IEdge GetEdge(INode source, INode target);
         IReadOnlyList<INode> Nodes { get; }
         IReadOnlyList<IEdge> Edges { get; }
         string Name { get; set; }
@@ -318,7 +319,13 @@ namespace CommunicationNetwork.Graph {
         public virtual bool AreConnected(INode source, INode target) {
             return storage.AreConnected(source, target);
         }
-        
+
+        public IEdge GetEdge(INode source, INode target) {
+            if (source == null || target == null)
+                throw new ArgumentNullException("Source and target nodes cannot be null.");
+            return storage.Edges.FirstOrDefault(edge => edge.Source.Equals(source) && edge.Target.Equals(target));
+        }
+
         public bool HasNode(INode node) {
             return storage.HasNode(node);
         }
