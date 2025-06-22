@@ -76,6 +76,8 @@ namespace CommunicationNetwork {
             graphToDOTGeneration.AddNodeMetadataKey(BFS.MetadataKey);
             graphToDOTGeneration.AddGraphMetadataKey(BFS.MetadataKey);
             graphToDOTGeneration.AddEdgeMetadataKey(BellmanFord.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(BellmanFord.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(BellmanFord.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 
