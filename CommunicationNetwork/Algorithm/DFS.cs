@@ -13,10 +13,12 @@ namespace CommunicationNetwork.Algorithms {
         IGraph _graph;
         int time = 0;
         
-        public static string MetadataKey => "DFS";
-        public string []Variables = new string[] { "Graph","Color", "TimeDiscovered", "TimeFinished","Time" };
+        
+        
 
-        public DFS() {
+        public DFS(string name) {
+            this.Name = name;
+            MetadataKey = this;
         }
         
         public class DFS_NodeMetaData {
@@ -35,21 +37,21 @@ namespace CommunicationNetwork.Algorithms {
         public void SetGraph(IGraph graph) {
             _graph = graph;
         }
-        public static string Color(INode node) {
+        public string Color(INode node) {
             return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
         }
         public void SetColor(INode node, string color) {
             var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
             metaData.Color = color;
         }
-        public static int TimeDiscovered(INode node) {
+        public int TimeDiscovered(INode node) {
            return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).TimeDiscovered;
         }
         private void SetTimeDiscovered(INode node, int t) {
             var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
             metaData.TimeDiscovered = t;
         }
-        public static int TimeFinished(INode node) {
+        public int TimeFinished(INode node) {
             return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).TimeFinished;
         } 
         private void SetTimeFinished(INode node, int t) {

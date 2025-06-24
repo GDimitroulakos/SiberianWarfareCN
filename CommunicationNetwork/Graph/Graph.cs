@@ -10,6 +10,7 @@ using CommunicationNetwork.Algorithms;
 
 namespace CommunicationNetwork.Graph {
 
+    
     public interface IGraphElement {
         Type ElementType { get; } // Type of the graph element (Node, Edge, Graph)}
         Dictionary<object, object> MetaData { get; }

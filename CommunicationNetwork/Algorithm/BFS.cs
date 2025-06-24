@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Algorithm {
     public class BFS :BaseAlgorithm{
-        // 1. Unique metadata key
-        public static string MetadataKey => "BFS";
 
         // 2. Metadata structure for BFS results
         public class BFS_NodeMetaData {
@@ -45,16 +43,21 @@ namespace CommunicationNetwork.Algorithm {
         private INode _start=null;
         private Queue<INode> queue;
 
+        public BFS(string name) {
+            this.Name = name;
+            MetadataKey = this;
+        }
+
         // 4. Accessor methods
-        public static string Color(INode node) {
+        public string Color(INode node) {
             return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
         }
 
-        public static int Distance(INode node) {
+        public int Distance(INode node) {
             return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Distance;
         }
 
-        public static INode Parent(INode node) {
+        public INode Parent(INode node) {
             return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Parent;
         }
 

@@ -8,7 +8,7 @@ using System.Threading;
 namespace CommunicationNetwork.Graph {
 
     public interface INode : IGraphElement{
-
+        public Dictionary<object, object> MetaData { get; }
     }
 
     public interface INode<T> : INode {

@@ -7,7 +7,10 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     public class BellmanFord : BaseAlgorithm {
-
+        public BellmanFord(string name) {
+            this.Name = name;
+            MetadataKey = this;
+        }
 
         public class BellmanFord_NodeMetadata {
             public double Distance;
@@ -21,18 +24,19 @@ namespace CommunicationNetwork.Algorithm {
                 return $"Bellman-Ford Results\nDistance={Distance}\nParent={parentName}";
             }
         }
+        
 
-        public static double Distance(INode node) {
+        public double Distance(INode node) {
             return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Distance;
         }
-        public static void SetDistance(INode node, double distance) {
+        public void SetDistance(INode node, double distance) {
             var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
             metaData.Distance = distance;
         }
-        public static INode Parent(INode node) {
+        public INode Parent(INode node) {
             return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Parent;
         }
-        public static void SetParent(INode node, INode parent) {
+        public  void SetParent(INode node, INode parent) {
             var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
             metaData.Parent = parent;
         }
@@ -48,11 +52,11 @@ namespace CommunicationNetwork.Algorithm {
             }
         }
 
-        public static double Weight(IEdge edge) {
+        public double Weight(IEdge edge) {
             return ((BellmanFord_EdgeMetadata)edge.MetaData[MetadataKey])._weight;
         }
 
-        public static void SetWeight(IEdge edge, double weight) {
+        public void SetWeight(IEdge edge, double weight) {
             if (!edge.MetaData.ContainsKey(MetadataKey)) {
                 edge.MetaData[MetadataKey] = new BellmanFord_EdgeMetadata(weight);
             } else {
@@ -75,7 +79,6 @@ namespace CommunicationNetwork.Algorithm {
             }
         }
 
-        public static string MetadataKey => "BellmanFord";
         private IGraph _graph;
         private INode _start;
 

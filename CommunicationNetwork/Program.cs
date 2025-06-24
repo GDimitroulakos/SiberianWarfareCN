@@ -48,36 +48,41 @@ namespace CommunicationNetwork {
              */
 
             // Run DFS on directed graph
-            DFS dfsDirected = new DFS();
+            DFS dfsDirected = new DFS("dfs1");
             dfsDirected.SetGraph(directedGraph);
             dfsDirected.Execute();
 
-            BFS bfsDirected = new BFS();
+            BFS bfsDirected = new BFS("bfs1");
             bfsDirected.SetGraph(directedGraph);
             bfsDirected.SetSource(node1);
             bfsDirected.Execute();
 
-            BellmanFord.SetWeight(edge1,2);
-            BellmanFord.SetWeight(edge2, 3);
-            BellmanFord.SetWeight(edge3, 1);
-            BellmanFord.SetWeight(edge4, 4);
-            BellmanFord.SetWeight(edge5, 2);
-            BellmanFord.SetWeight(edge6, 5);
+            
 
 
-            BellmanFord bellmanFordDirected = new BellmanFord();
+            BellmanFord bellmanFordDirected = new BellmanFord("bf1");
+            bellmanFordDirected.SetWeight(edge1, 2);
+            bellmanFordDirected.SetWeight(edge2, 3);
+            bellmanFordDirected.SetWeight(edge3, 1);
+            bellmanFordDirected.SetWeight(edge4, 4);
+            bellmanFordDirected.SetWeight(edge5, 2);
+            bellmanFordDirected.SetWeight(edge6, 5);
             bellmanFordDirected.SetStart(node1);
             bellmanFordDirected.SetGraph(directedGraph);
             bellmanFordDirected.Execute();
 
+            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            topologicalSort.SetGraph(directedGraph);
+            topologicalSort.SetDFS(dfsDirected);
+            topologicalSort.Execute();
 
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            graphToDOTGeneration.AddNodeMetadataKey(DFS.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(BFS.MetadataKey);
-            graphToDOTGeneration.AddGraphMetadataKey(BFS.MetadataKey);
-            graphToDOTGeneration.AddEdgeMetadataKey(BellmanFord.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(BellmanFord.MetadataKey);
-            graphToDOTGeneration.AddGraphMetadataKey(BellmanFord.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
+            graphToDOTGeneration.AddEdgeMetadataKey(bellmanFordDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(bellmanFordDirected.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 
