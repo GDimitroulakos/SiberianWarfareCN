@@ -579,7 +579,7 @@ namespace CommunicationNetwork.Graph {
             return label?.Replace("\"", "\\\"") ?? string.Empty;
         }
     }
-    public class DirectedGraphGraphvizPrinter {
+    /*public class DirectedGraphGraphvizPrinter {
 
         INodeMetadataGraphvizPrinter _nodePrinter;
         IEdgeMetadataGraphvizPrinter _edgePrinter;
@@ -650,7 +650,7 @@ namespace CommunicationNetwork.Graph {
         private static string Escape(string label) {
             return label?.Replace("\"", "\\\"") ?? string.Empty;
         }
-    }
+    }*/
 
 
 
