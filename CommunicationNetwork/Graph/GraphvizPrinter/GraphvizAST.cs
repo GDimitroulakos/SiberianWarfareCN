@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using CommunicationNetwork.Graph.GraphvizPrinter;
-
 
 namespace CommunicationNetwork.Graph.GraphvizPrinter {
     public abstract class ASTNode {
@@ -43,17 +41,23 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
     }
 
     public class GraphvizFileLayout : ASTComposite {
-        private string _graphType;
+
+        public enum GRAPHTYPE {
+            DIGRAPH,
+            GRAPH
+        }
+        private GRAPHTYPE _graphType;
+        public GRAPHTYPE GraphType => _graphType;
+
         private string _graphName;
-        public string GraphType => _graphType;
         public string GraphName => _graphName;
 
 
-        public const int GLOBAL_ATTRIBUTES = 0, NODE_DEFINITIONS = 1,
+        public const int PROPERTIES = 0, NODE_DEFINITIONS = 1,
             EDGE_DEFINITIONS = 2, SUBGRAPH_DEFINITIONS = 3;
 
         
-        public GraphvizFileLayout(string name, string graphType) :
+        public GraphvizFileLayout(string name, GRAPHTYPE graphType) :
             base("GraphvizFileLayout") {
             _graphType = graphType;
             _graphName = name;
@@ -78,82 +82,6 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             visitor.Visit(this);
         }
     }
-
-    public class GraphvizNodeProperties : ASTComposite {
-        
-        public const int PROPERTIES = 0;
-
-        public GraphvizNodeProperties() : base("GraphvizNodeProperties") {
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
-    public class GraphvizEdgeProperties : ASTComposite {
-
-        public const int PROPERTIES = 0;
-
-        public GraphvizEdgeProperties() : base("GraphvizEdgeProperties") {
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
-    public class GraphvizEdgeProperty : ASTComposite {
-        string _propertyName;
-        public string PropertyName => _propertyName;
-        public const int PROPERTY_VALUES = 0;
-
-        public GraphvizEdgeProperty(string propertyName) :
-            base("GraphvizEdgeProperty") {
-            _propertyName = propertyName;
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
-    public class GraphvizEdgePropertyValue : ASTLeaf {
-        private string _propertyValue;
-        public string PropertyValue => _propertyValue;
-        public GraphvizEdgePropertyValue(string propertyValue) :
-            base("GraphvizEdgePropertyValue") {
-            _propertyValue = propertyValue;
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
-    public class GraphvizNodeProperty : ASTComposite {
-        string _propertyName;
-        public string PropertyName => _propertyName;
-
-        public const int PROPERTY_VALUES = 0;
-
-        public GraphvizNodeProperty(string propertyName) :
-            base("GraphvizNodeProperty") {
-            _propertyName = propertyName;
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-
-    public class GraphvizNodePropertyValue : ASTLeaf {
-        private string _propertyValue;
-        public string PropertyValue => _propertyValue;
-        public GraphvizNodePropertyValue(string propertyValue) :
-            base("GraphvizNodePropertyValue") {
-            _propertyValue = propertyValue;
-        }
-        public override void Accept(IGraphvizASTVisitor visitor) {
-            visitor.Visit(this);
-        }
-    }
-    
     public class GraphvizEdge : ASTComposite {
         string _sourceNodeID;
         string _targetNodeID;
@@ -164,6 +92,42 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             base("GraphvizEdge") {
             _sourceNodeID = sourceNodeID;
             _targetNodeID = targetNodeID;
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+
+    public class GraphvizProperties : ASTComposite {
+        
+        public const int PROPERTIES = 0;
+
+        public GraphvizProperties() : base("GraphvizNodeProperties") {
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+
+    public class GraphvizProperty : ASTComposite {
+        string _propertyName;
+        public string PropertyName => _propertyName;
+        public const int PROPERTY_VALUES = 0;
+
+        public GraphvizProperty(string propertyName) :
+            base("GraphvizEdgeProperty") {
+            _propertyName = propertyName;
+        }
+        public override void Accept(IGraphvizASTVisitor visitor) {
+            visitor.Visit(this);
+        }
+    }
+    public class GraphvizPropertyValue : ASTLeaf {
+        private string _propertyValue;
+        public string PropertyValue => _propertyValue;
+        public GraphvizPropertyValue(string propertyValue) :
+            base("GraphvizPropertyValue") {
+            _propertyValue = propertyValue;
         }
         public override void Accept(IGraphvizASTVisitor visitor) {
             visitor.Visit(this);

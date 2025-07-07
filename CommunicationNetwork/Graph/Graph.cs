@@ -10,6 +10,7 @@ using CommunicationNetwork.Algorithms;
 
 namespace CommunicationNetwork.Graph {
 
+    
     public interface IGraphElement {
         Type ElementType { get; } // Type of the graph element (Node, Edge, Graph)}
         Dictionary<object, object> MetaData { get; }
@@ -177,7 +178,6 @@ namespace CommunicationNetwork.Graph {
             }
         }
     }
-
     public class UndirectedAdjacencyListStorage : AdjacencyListStorage, IUndirectedGraphStorage {
         Dictionary<INode, List<IEdge>> edgesByNode = new Dictionary<INode, List<IEdge>>();
 
@@ -261,8 +261,10 @@ namespace CommunicationNetwork.Graph {
         void RemoveNode(INode node);
         void RemoveEdge(IEdge edge);
         bool AreConnected(INode source, INode target);
+        IReadOnlyList<INode> GetNeighbors(INode node);
         bool HasNode(INode node);
         bool HasEdge(IEdge edge);
+        IEdge GetEdge(INode source, INode target);
         IReadOnlyList<INode> Nodes { get; }
         IReadOnlyList<IEdge> Edges { get; }
         string Name { get; set; }
@@ -290,7 +292,6 @@ namespace CommunicationNetwork.Graph {
         public override string ToString() {
             return $"{GetType().Name} '{Name}' [Nodes: {NodeCount}, Edges: {EdgeCount}]";
         }
-
 
         protected BaseGraph(IGraphStorage storage, string name = null) {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -320,6 +321,12 @@ namespace CommunicationNetwork.Graph {
             return storage.AreConnected(source, target);
         }
 
+        public IEdge GetEdge(INode source, INode target) {
+            if (source == null || target == null)
+                throw new ArgumentNullException("Source and target nodes cannot be null.");
+            return storage.Edges.FirstOrDefault(edge => edge.Source.Equals(source) && edge.Target.Equals(target));
+        }
+
         public bool HasNode(INode node) {
             return storage.HasNode(node);
         }
@@ -327,9 +334,11 @@ namespace CommunicationNetwork.Graph {
         public bool HasEdge(IEdge edge) {
             return storage.HasEdge(edge);
         }
+
+        public abstract IReadOnlyList<INode> GetNeighbors(INode node);
     }
 
-    public class BaseGraph<T> : BaseGraph, IGraph<T> {
+    public abstract class BaseGraph<T> : BaseGraph, IGraph<T> {
         public T Value { get; set; } // Generic value associated with the graph
         public BaseGraph(IGraphStorage storage, string name = null) : base(storage, name) {
             Value = default(T);
@@ -347,17 +356,18 @@ namespace CommunicationNetwork.Graph {
     }
 
     public interface IUndirectedGraph : IGraph {
-        IEnumerable<INode> GetNeighbors(INode node);
+        IReadOnlyList<INode> GetNeighbors(INode node);
         IEnumerable<IEdge> GetEdges(INode node);
     }
 
     public class UnDirectedGraph : BaseGraph, IUndirectedGraph {
         readonly IUndirectedGraphStorage undirectedStorage;
 
-        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) : base(storage, name) {
+        public UnDirectedGraph(IUndirectedGraphStorage storage, string name = null) :
+            base(storage, name) {
             undirectedStorage = storage;
         }
-        public IEnumerable<INode> GetNeighbors(INode node) {
+        public override IReadOnlyList<INode> GetNeighbors(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
@@ -432,6 +442,11 @@ namespace CommunicationNetwork.Graph {
             return directedStorage.GetOutgoingEdges(node);
         }
 
+        public override IReadOnlyList<INode> GetNeighbors(INode node) {
+            List<INode> neighbors = GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
+            return neighbors;
+        }
+
         public IEnumerable<IEdge> GetIncomingEdges(INode node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
@@ -450,212 +465,4 @@ namespace CommunicationNetwork.Graph {
             return $"{base.ToString()}, Value: {Value}";
         }
     }
-
-    public class GraphvizPrinterSettings {
-        private bool _showNodeLabels = true;
-        private bool _showEdgeLabels = false;
-        private bool _showNodeProperties;
-        private bool _showEdgeProperties;
-
-        public bool ShowNodeLabels {
-            get => _showNodeLabels;
-            set => _showNodeLabels = value;
-        }
-
-        public bool ShowEdgeLabels {
-            get => _showEdgeLabels;
-            set => _showEdgeLabels = value;
-        }
-
-        public bool ShowNodeProperties {
-            get => _showNodeProperties;
-            set => _showNodeProperties = value;
-        }
-
-        public bool ShowEdgeProperties {
-            get => _showEdgeProperties;
-            set => _showEdgeProperties = value;
-        }
-    }
-
-    public static class UndirectedGraphGraphvizPrinter {
-        /// <summary>
-        /// Generates a Graphviz DOT representation of an undirected graph.
-        /// </summary>
-        /// <param name="graph">The undirected graph to print.</param>
-        /// <param name="dotFileName">The file name to write the DOT output to.</param>
-        /// <returns>DOT format string.</returns>
-        public static string ToDot(IUndirectedGraph graph, string dotFileName,
-            GraphvizPrinterSettings printSettings) {
-            if (graph == null) throw new ArgumentNullException(nameof(graph));
-
-            var sb = new StringBuilder();
-            sb.AppendLine("graph G {");
-
-            // Print nodes
-            foreach (var node in graph.Nodes) {
-                CreateAugmentedGraphvizNode(node, sb, printSettings);
-            }
-
-            // Print edges (avoid duplicates by only printing edge if Source.Serial <= Target.Serial)
-            var printed = new HashSet<(int, int)>();
-            foreach (var edge in graph.Edges) {
-                int source = edge.Source.Serial;
-                int target = edge.Target.Serial;
-                string edgeLabel = edge.Name;
-
-                if (printSettings.ShowEdgeLabels) {
-                    if (printSettings.ShowEdgeProperties) {
-                        sb.AppendLine($"  \"{source}\" -- \"{target}\"  [label=\"{Escape(edgeLabel)}\"," +
-                                      $" xlabel=\"NA\"];");
-                    } else {
-                        sb.AppendLine($"    \"{source}\" -- \"{target}\" [label=\"{Escape(edgeLabel)}\"]");
-                    }
-                } else {
-                    sb.AppendLine($"    \"{source}\" -- \"{target}\";");
-                }
-            }
-
-            sb.AppendLine("}");
-            using (StreamWriter dotFile = new StreamWriter(dotFileName)) {
-                dotFile.Write(sb);
-            }
-            return sb.ToString();
-        }
-
-        private static void CreateAugmentedGraphvizNode(INode node,
-            StringBuilder sb, GraphvizPrinterSettings printSettings) {
-            string nodeLabel = node.Name ?? node.Serial.ToString();
-            var TimeDiscovered = node.MetaData.ContainsKey("DFSUndirected")
-                ? DFSUndirected.TimeDiscovered(node).ToString()
-                : "N/A";
-            var TimeFinished = node.MetaData.ContainsKey("DFSUndirected")
-                ? DFSUndirected.TimeFinished(node).ToString()
-                : "N/A";
-            if (printSettings.ShowNodeLabels) {
-                if (printSettings.ShowNodeProperties) {
-                    sb.AppendLine($"    \"{node.Serial}\" [fixedsized=false, label=\"{Escape(nodeLabel)} \nTD:{TimeDiscovered} \nTF:{TimeFinished}\"];");
-                } else {
-                    sb.AppendLine($"    \"{node.Serial}\" [label=\"{Escape(nodeLabel)}\"]");
-                }
-            } else {
-                if (printSettings.ShowNodeProperties) {
-                    sb.AppendLine($"    \"{node.Serial}\" [xlabel=\"TD:{TimeDiscovered}\nTF:{TimeFinished}\"];");
-                } else {
-                    sb.AppendLine($"    \"{node.Serial}\";");
-                }
-            }
-        }
-
-        public static void GenerateGraphGif(string dotFilePath, string outputGifPath) {
-            if (string.IsNullOrWhiteSpace(dotFilePath))
-                throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
-            if (string.IsNullOrWhiteSpace(outputGifPath))
-                throw new ArgumentException("Output GIF path must be provided.", nameof(outputGifPath));
-
-            var processStartInfo = new System.Diagnostics.ProcessStartInfo {
-                FileName = "dot",
-                Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
-                process.Start();
-                string stdOut = process.StandardOutput.ReadToEnd();
-                string stdErr = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                if (process.ExitCode != 0) {
-                    throw new InvalidOperationException(
-                        $"dot process failed with exit code {process.ExitCode}: {stdErr}");
-                }
-            }
-        }
-
-        private static string Escape(string label) {
-            return label?.Replace("\"", "\\\"") ?? string.Empty;
-        }
-    }
-    /*public class DirectedGraphGraphvizPrinter {
-
-        INodeMetadataGraphvizPrinter _nodePrinter;
-        IEdgeMetadataGraphvizPrinter _edgePrinter;
-
-
-        public DirectedGraphGraphvizPrinter(
-            INodeMetadataGraphvizPrinter nodePrinter,
-            IEdgeMetadataGraphvizPrinter edgePrinter) {
-            _nodePrinter = nodePrinter;
-            _edgePrinter = edgePrinter;
-        }
-
-        public string ToDot(IDirectedGraph graph, string dotFileName) {
-            if (graph == null) throw new ArgumentNullException(nameof(graph));
-
-            var sb = new StringBuilder();
-            sb.AppendLine("digraph G {");
-
-            // Print nodes
-            foreach (var node in graph.Nodes) {
-                sb.AppendLine(_nodePrinter.ToString(node));
-            }
-
-            // Print edges
-            foreach (var edge in graph.Edges) {
-                int source = edge.Source.Serial;
-                int target = edge.Target.Serial;
-                string edgeLabel = edge.Name;
-                sb.AppendLine(_edgePrinter.ToString(edge));
-            }
-
-            sb.AppendLine("}");
-            using (StreamWriter dotFile = new StreamWriter(dotFileName)) {
-                dotFile.Write(sb);
-            }
-            return sb.ToString();
-        }
-        
-        
-        public void GenerateGraphGif(string dotFilePath, string outputGifPath) {
-            if (string.IsNullOrWhiteSpace(dotFilePath))
-                throw new ArgumentException("DOT file path must be provided.", nameof(dotFilePath));
-            if (string.IsNullOrWhiteSpace(outputGifPath))
-                throw new ArgumentException("Output GIF path must be provided.", nameof(outputGifPath));
-
-            var processStartInfo = new System.Diagnostics.ProcessStartInfo {
-                FileName = "dot",
-                Arguments = $"-Tgif \"{dotFilePath}\" -o \"{outputGifPath}\"",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = new System.Diagnostics.Process { StartInfo = processStartInfo }) {
-                process.Start();
-                string stdOut = process.StandardOutput.ReadToEnd();
-                string stdErr = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                if (process.ExitCode != 0) {
-                    throw new InvalidOperationException(
-                        $"dot process failed with exit code {process.ExitCode}: {stdErr}");
-                }
-            }
-        }
-
-        private static string Escape(string label) {
-            return label?.Replace("\"", "\\\"") ?? string.Empty;
-        }
-    }*/
-
-
-
-
-
-
-
 }

@@ -13,12 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="bin\Debug\net9.0\test.gif" />
     <Content Include="bin\Debug\net9.0\test_directed.gif" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="bin\Debug\net9.0\test.dot" />
     <None Include="bin\Debug\net9.0\test_directed.dot" />
   </ItemGroup>
 

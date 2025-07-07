@@ -1,12 +1,12 @@
-﻿using CommunicationNetwork.Algorithms;
+﻿using CommunicationNetwork.Algorithm;
+using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
 
-namespace CommunicationNetwork
-{
+namespace CommunicationNetwork {
     internal class Program {
         static void Main(string[] args) {
-           UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
+            UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
             Node node1 = new Node();
             Node node2 = new Node();
             Node node3 = new Node();
@@ -39,37 +39,58 @@ namespace CommunicationNetwork
             directedGraph.AddEdge(edge2);
             directedGraph.AddEdge(edge3);
             directedGraph.AddEdge(edge4);
+            directedGraph.AddEdge(edge5);
             directedGraph.AddEdge(edge6);
 
-            
-
-            /*DFSUndirected dfs = new DFSUndirected();
-            dfs.SetUnDirectedGraph(graph);
-            dfs.Execute();
-
-
-
-            UndirectedGraphGraphvizPrinter.ToDot(graph, "test.dot", new GraphvizPrinterSettings() {
-                ShowEdgeLabels = false,
-                ShowNodeLabels = true,
-                ShowNodeProperties = true,
-                ShowEdgeProperties = false
-            });
-            UndirectedGraphGraphvizPrinter.GenerateGraphGif("test.dot", "test.gif");*/
+            /*  DFSUndirected dfs = new DFSUndirected();
+                  dfs.SetUnDirectedGraph(graph);
+                  dfs.Execute();
+             */
 
             // Run DFS on directed graph
-            DFSDirected dfsDirected = new DFSDirected();
-            dfsDirected.SetDirectedGraph(directedGraph);
+            DFS dfsDirected = new DFS("dfs1");
+            dfsDirected.SetGraph(directedGraph);
             dfsDirected.Execute();
+
+            BFS bfsDirected = new BFS("bfs1");
+            bfsDirected.SetGraph(directedGraph);
+            bfsDirected.SetSource(node1);
+            bfsDirected.Execute();
+
             
+
+
+            BellmanFord bellmanFordDirected = new BellmanFord("bf1");
+            bellmanFordDirected.SetWeight(edge1, 2);
+            bellmanFordDirected.SetWeight(edge2, 3);
+            bellmanFordDirected.SetWeight(edge3, 1);
+            bellmanFordDirected.SetWeight(edge4, 4);
+            bellmanFordDirected.SetWeight(edge5, 2);
+            bellmanFordDirected.SetWeight(edge6, 5);
+            bellmanFordDirected.SetStart(node1);
+            bellmanFordDirected.SetGraph(directedGraph);
+            bellmanFordDirected.Execute();
+
+            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            topologicalSort.SetGraph(directedGraph);
+            topologicalSort.SetDFS(dfsDirected);
+            topologicalSort.Execute();
+
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            graphToDOTGeneration.AddNodeMetadataKey(DFSDirected.MetadataKey);
-            //graphToDOTGeneration.AddNodeMetadataKey(DFSUndirected.MetadataKey); // ****DO BE REMOVED -- for testing purposes  ****
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
+            graphToDOTGeneration.AddEdgeMetadataKey(bellmanFordDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(bellmanFordDirected.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
-            
+
             graphvizFileLayoutVisitor.GenerateDot("test_directed.dot", graphToDOTGeneration.DotFileAst);
             graphvizFileLayoutVisitor.GenerateGIF();
+
+            GraphvizASTPrinter graphvizASTPrinter = new GraphvizASTPrinter();
+            graphvizASTPrinter.GenerateDot(graphToDOTGeneration.DotFileAst, "AST.dot");
 
 
 
