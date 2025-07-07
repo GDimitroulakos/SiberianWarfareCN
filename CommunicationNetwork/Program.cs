@@ -73,15 +73,15 @@ namespace CommunicationNetwork
 
 
 
-            /*DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
-                new DFSDirectedGraphvizFixedSizePropertyPrinter(
-                    new DFSGraphvizNodePrinter() ));
-            DFSGraphvizEdgePrinter dgep = new DFSGraphvizEdgePrinter();
-            DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp,dgep);
+            //DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
+            //    new DFSDirectedGraphvizFixedSizePropertyPrinter(
+            //        new DFSGraphvizNodePrinter() ));
+            //DFSGraphvizEdgePrinter dgep = new DFSGraphvizEdgePrinter();
+            //DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp,dgep);
 
-            // Print the directed graph to DOT and generate GIF
-            dgp.ToDot(directedGraph, "test_directed.dot");
-            dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif"); */
+            //// Print the directed graph to DOT and generate GIF
+            //dgp.ToDot(directedGraph, "test_directed.dot");
+            //dgp.GenerateGraphGif("test_directed.dot", "test_directed.gif");
 
 
         }
