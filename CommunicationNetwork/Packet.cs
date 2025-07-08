@@ -42,7 +42,7 @@ namespace CommunicationNetwork
 		}
 	}
 
-	public interface Transmitter
+	public interface ITransmitter
 	{
 		void Transmit(Packet packet);
 	}

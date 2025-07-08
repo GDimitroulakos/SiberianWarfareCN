@@ -7,7 +7,7 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class RepeaterNode : Node
+	public class RepeaterNode : Node, ITransmitter
 	{
 		/// <summary>
 		/// Represents a repeater node in a communication network graph.
@@ -28,6 +28,11 @@ namespace CommunicationNetwork.Nodes
 		{
 			Console.WriteLine($"{Name} is amplifying the signal.");
 			// Logic for regenerating the signal
+		}
+
+		public void Transmit(Packet packet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

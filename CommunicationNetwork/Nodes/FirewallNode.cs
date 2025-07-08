@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class FirewallNode : Node
+	public class FirewallNode : Node, ITransmitter
 	{
 		/// <summary>
 		/// Represents a firewall node in a communication network graph.
@@ -28,6 +28,11 @@ namespace CommunicationNetwork.Nodes
 		{
 			Console.WriteLine($"{Name} is logging traffic.");
 			// Logic for logging network traffic
+		}
+
+		public void Transmit(Packet packet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

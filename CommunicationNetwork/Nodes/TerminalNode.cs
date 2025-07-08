@@ -11,7 +11,7 @@ namespace CommunicationNetwork.Nodes
 	/// Represents a terminal node in a communication network graph.
 	/// Terminal nodes either pull or push orders and are typically the endpoints of a communication path.
 	/// </summary>
-	public class TerminalNode : Node
+	public class TerminalNode : Node, ITransmitter
 	{
 		private enum NodeType
 		{
@@ -41,6 +41,11 @@ namespace CommunicationNetwork.Nodes
 		{
 			// Logic for pushing an order
 			Console.WriteLine($"{Name} is pushing an order.");
+		}
+
+		public void Transmit(Packet packet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

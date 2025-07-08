@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class VulnerableNode : Node
+	public class VulnerableNode : Node, ITransmitter
 	{
 		private double plaintextProbability = 0.4; // Probability of plaintext data being logged
 
@@ -28,6 +28,11 @@ namespace CommunicationNetwork.Nodes
 			// Logic for logging encrypted data
 			Console.WriteLine($"{Name} is logging encrypted data.");
 			return "Encrypted data logged.";
+		}
+
+		public void Transmit(Packet packet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

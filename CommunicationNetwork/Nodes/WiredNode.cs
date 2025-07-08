@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class WiredNode : Node
+	public class WiredNode : Node, ITransmitter
 	{
 		public WiredNode() : base()
 		{
@@ -23,6 +23,11 @@ namespace CommunicationNetwork.Nodes
 		{
 			Console.WriteLine($"{Name} is disconnecting from the network.");
 			// Logic for terminating a connection
+		}
+
+		public void Transmit(Packet packet)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
