@@ -4,35 +4,64 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.Security;
 
 namespace CommunicationNetwork.Nodes
 {
 	public class VulnerableNode : Node, ITransmitter
 	{
-		private double plaintextProbability = 0.4; // Probability of plaintext data being logged
+		private double _plaintextProbability = 0.3;
+		private Random _rng = new Random();
+		private List<ITransmitter> _links = new List<ITransmitter>();
 
-		public VulnerableNode() : base()
+		public VulnerableNode(double plaintextProbability = 0.3)
 		{
-			
+			_plaintextProbability = plaintextProbability;
 		}
 
-		public string LogPlaintext()
-		{
-			// Logic for logging plaintext data
-			Console.WriteLine($"{Name} is logging plaintext data.");
-			return "Plaintext data logged.";
-		}
+		public void AddLink(ITransmitter node) => _links.Add(node);
 
-		public string LogEncrypted()
+		public string EncryptPayload(string payload)
 		{
-			// Logic for logging encrypted data
-			Console.WriteLine($"{Name} is logging encrypted data.");
-			return "Encrypted data logged.";
+			var encrypted = new StringBuilder();
+			int shift = _rng.Next(1, 26); // Random shift for encryption
+			foreach (char c in payload)
+			{
+				if (char.IsLetter(c))
+				{
+					char offset = char.IsUpper(c) ? 'A' : 'a';
+					encrypted.Append((char) ((((c + shift) - offset) % 26) + offset));
+				}
+				else
+				{
+					encrypted.Append(c); // Non-letter characters remain unchanged
+				}
+			}
+			return encrypted.ToString();
 		}
 
 		public void Transmit(Packet packet)
 		{
-			throw new NotImplementedException();
+			Console.WriteLine($"{Name} received packet with payload '{packet.Payload}'.");
+			// Confidentiality attack: log plaintext with some probability
+			if (_rng.NextDouble() < _plaintextProbability)
+			{
+				Console.WriteLine($"{Name} logged plaintext data: {packet.Payload}");
+			}
+			else
+			{
+				var encryptedPayload = EncryptPayload(packet.Payload);
+				Console.WriteLine($"{Name} encrypted payload: {encryptedPayload}");
+				packet.Payload = encryptedPayload; // Update packet with encrypted payload
+			}
+
+			// Forward packet
+			foreach (var link in _links)
+			{
+				Console.WriteLine($"{Name} forwarding packet to {((Node) link).Name}.");
+				link.Transmit(packet);
+			}
 		}
 	}
 }
+

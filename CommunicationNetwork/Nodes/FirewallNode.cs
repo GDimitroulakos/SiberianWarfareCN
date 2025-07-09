@@ -9,30 +9,32 @@ namespace CommunicationNetwork.Nodes
 {
 	public class FirewallNode : Node, ITransmitter
 	{
-		/// <summary>
-		/// Represents a firewall node in a communication network graph.
-		/// Firewall nodes are used to filter and control the flow of data between different parts of the network.
-		/// </summary>
-		public FirewallNode() : base()
-		{
+		private List<ITransmitter> _links = new List<ITransmitter>();
+		private Func<Packet, bool> _filter;
 
+		public FirewallNode(Func<Packet, bool> filter)
+		{
+			_filter = filter ?? (_ => true);
 		}
 
-		public void FilterData()
-		{
-			Console.WriteLine($"{Name} is filtering data.");
-			// Logic for filtering data packets
-		}
-
-		public void LogTraffic()
-		{
-			Console.WriteLine($"{Name} is logging traffic.");
-			// Logic for logging network traffic
-		}
+		public void AddLink(ITransmitter node) => _links.Add(node);
 
 		public void Transmit(Packet packet)
 		{
-			throw new NotImplementedException();
+			Console.WriteLine($"{Name} inspecting packet with payload '{packet.Payload}'.");
+			if (_filter(packet))
+			{
+				Console.WriteLine($"{Name} allowed the packet.");
+				foreach (var link in _links)
+				{
+					Console.WriteLine($"{Name} forwarding packet to {((Node) link).Name}.");
+					link.Transmit(packet);
+				}
+			}
+			else
+			{
+				Console.WriteLine($"{Name} dropped the packet.");
+			}
 		}
 	}
 }

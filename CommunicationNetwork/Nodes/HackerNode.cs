@@ -41,6 +41,27 @@ namespace CommunicationNetwork.Nodes
 			}
 		}
 
+		public string IntegrityAttack(string payload)
+		{
+			// alter the payload to simulate a data integrity attack with random letters
+			var alteredPayload = new StringBuilder();
+			foreach (char c in payload)
+			{
+				if (char.IsLetter(c))
+				{
+					// Randomly change the character to a different letter
+					char newChar = (char) ('A' + _rng.Next(0, 26));
+					alteredPayload.Append(newChar);
+				}
+				else
+				{
+					// Non-letter characters remain unchanged
+					alteredPayload.Append(c);
+				}
+			}
+			return alteredPayload.ToString();
+		}
+
 		public void Transmit(Packet packet)
 		{
 			packet.CurrentNode = this;

@@ -13,39 +13,36 @@ namespace CommunicationNetwork.Nodes
 	/// </summary>
 	public class TerminalNode : Node, ITransmitter
 	{
-		private enum NodeType
-		{
-			Troop,
-			Vehicle,
-			Building,
-			Aircraft,
-			Ship,
-			Station,
-			Drone
-		};
+		private List<ITransmitter> _links = new List<ITransmitter>();
 
-		private NodeType nodeType;
+		public enum TerminalType { Sender, Receiver }
+		private TerminalType _type;
 
-		public TerminalNode() : base()
+		public TerminalNode(TerminalType type)
 		{
-			nodeType = NodeType.Troop; // Default type, can be changed as needed
+			_type = type;
 		}
 
-		public void PullOrder()
-		{
-			// Logic for pulling an order
-			Console.WriteLine($"{Name} is pulling an order.");
-		}
+		public void AddLink(ITransmitter node) => _links.Add(node);
 
-		public void PushOrder()
+		public void PushOrder(Packet packet)
 		{
-			// Logic for pushing an order
-			Console.WriteLine($"{Name} is pushing an order.");
+			Console.WriteLine($"{Name} is pushing an order with payload '{packet.Payload}'.");
+			Transmit(packet);
 		}
 
 		public void Transmit(Packet packet)
 		{
-			throw new NotImplementedException();
+			if (_type == TerminalType.Sender)
+			{
+				Console.WriteLine($"{Name} is sending packet '{packet.Payload}' to network.");
+				foreach (var link in _links)
+					link.Transmit(packet);
+			}
+			else if (_type == TerminalType.Receiver)
+			{
+				Console.WriteLine($"{Name} received packet with payload '{packet.Payload}'.");
+			}
 		}
 	}
 }

@@ -22,7 +22,8 @@ namespace CommunicationNetwork.Graph {
         public int Serial => m_serialNumber;
         public readonly int m_serialNumber;
         private static int ms_TnodeCounter = 0;
-        public Node() {
+
+		public Node() {
             m_serialNumber = Interlocked.Increment(ref ms_TnodeCounter);
             Name = "Node_" + m_serialNumber;
             MetaData = new Dictionary<object, object>();
