@@ -21,17 +21,19 @@ namespace CommunicationNetwork.Nodes
 			_type = type;
 		}
 
-		public override void Trasmit(Packet packet, List<Node> path)
+		public override void Trasmit(Packet packet)
 		{
+			Console.WriteLine($"Reached Terminal {_type} Node:");
 			if (_type == TerminalType.Sender)
 			{
-				Console.WriteLine($"{Name} is sending packet '{packet.Payload}' to network.");
+				Console.WriteLine($"\t{Name} is sending packet '{packet.Payload}' to network.");
 
 			}
 			else if (_type == TerminalType.Receiver)
 			{
-				Console.WriteLine($"{Name} received packet with payload '{packet.Payload}'.");
+				Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
 			}
+			Console.WriteLine();
 		}
 	}
 }

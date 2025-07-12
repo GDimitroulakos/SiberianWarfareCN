@@ -36,8 +36,4 @@ namespace CommunicationNetwork
 		}
 	}
 
-	public interface ITransmitter
-	{
-		void Transmit(Packet packet, List<INode> path);
-	}
 }

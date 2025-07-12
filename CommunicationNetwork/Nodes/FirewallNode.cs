@@ -16,18 +16,20 @@ namespace CommunicationNetwork.Nodes
 			_filter = filter ?? (_ => true);
 		}
 
-		public override void Trasmit(Packet packet, List<Node> path)
+		public override void Trasmit(Packet packet)
 		{
-			Console.WriteLine($"{Name} inspecting packet with payload '{packet.Payload}'.");
+			Console.WriteLine("Reached Firewall Node: ");
+			Console.WriteLine($"\t{Name} inspecting packet with payload '{packet.Payload}'.");
 			if (_filter(packet))
 			{
-				Console.WriteLine($"{Name} allowed the packet.");
+				Console.WriteLine($"\t{Name} allowed the packet.");
 
 			}
 			else
 			{
-				Console.WriteLine($"{Name} dropped the packet.");
+				Console.WriteLine($"\t{Name} dropped the packet.");
 			}
+			Console.WriteLine();
 		}
 	}
 }

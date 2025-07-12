@@ -7,8 +7,9 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     public class BellmanFord : BaseAlgorithm {
+        public Dictionary<INode, List<INode>> Paths { get; set; }
 
-        public BellmanFord(string name) {
+		public BellmanFord(string name) {
             this.Name = name;
             MetadataKey = name;
         }
@@ -143,7 +144,8 @@ namespace CommunicationNetwork.Algorithm {
                 }
                 graphMetaData._paths[node].Reverse(); // Reverse to get the path from start to node
             }
-        }
+            Paths = graphMetaData._paths;
+		}
 
         public void Relax(INode u, INode v) {
             IEdge edge = _graph.GetEdge(u, v);

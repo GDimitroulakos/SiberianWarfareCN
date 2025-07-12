@@ -3,6 +3,8 @@ using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
 using CommunicationNetwork.Nodes;
+using System.Xml.Linq;
+using static CommunicationNetwork.Algorithm.BellmanFord;
 
 namespace CommunicationNetwork {
     internal class Program {
@@ -19,10 +21,10 @@ namespace CommunicationNetwork {
             Edge edge4 = new Edge(hn, tnr);
 
             graph.AddNode(tns);
-            graph.AddNode(hn);
             graph.AddNode(vn);
             graph.AddNode(fn);
-            graph.AddNode(tnr);
+			graph.AddNode(hn);
+			graph.AddNode(tnr);
             graph.AddEdge(edge1);
             graph.AddEdge(edge2);
             graph.AddEdge(edge3);
@@ -30,9 +32,9 @@ namespace CommunicationNetwork {
 
             DirectedGraph directedGraph = new DirectedGraph(new DirectedAdjacencyListStorage(), "dg");
             directedGraph.AddNode(tns);
-            directedGraph.AddNode(hn);
             directedGraph.AddNode(vn);
             directedGraph.AddNode(fn);
+            directedGraph.AddNode(hn);
             directedGraph.AddNode(tnr);
             directedGraph.AddEdge(edge1);
             directedGraph.AddEdge(edge2);
@@ -71,22 +73,18 @@ namespace CommunicationNetwork {
 
             // Traverse path with packet
             Packet packet = new Packet("Hello World");
-			//var graphMeta = (BellmanFord.BellmanFord_GraphMetadata) bellmanFordDirected.MetaData["bf1"];
-			//Dictionary<INode, List<INode>> paths = graphMeta._paths;
-
-			List<INode> path = new List<INode> { tns, vn, fn, hn, tnr };
-			// List<Node> path = paths[tns].Select(n => (Node) n).ToList();
-			foreach (Node node in path)
+            var path = bellmanFordDirected.Paths[tnr];
+            foreach (Node node in path)
             {
-				node.Trasmit(packet, null);
-			}
-			
+                node.Trasmit(packet);
+            }
 
 
-			GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            //graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
-            //graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
-            //graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
+
+            GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
+            graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
             graphToDOTGeneration.AddEdgeMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.AddNodeMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.AddGraphMetadataKey(bellmanFordDirected.MetadataKey);

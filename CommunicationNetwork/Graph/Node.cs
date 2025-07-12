@@ -30,7 +30,7 @@ namespace CommunicationNetwork.Graph {
             ElementType = typeof(Node);
         }
 
-		public abstract void Trasmit(Packet packet, List<Node> path);
+		public abstract void Trasmit(Packet packet);
 	}
 
     public abstract class Node<T> : Node ,INode<T>{

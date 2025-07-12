@@ -20,7 +20,6 @@ namespace CommunicationNetwork.Nodes
 		{
 			_modifyProbability = modifyProbability;
 			_dropProbability = dropProbability;
-			Console.WriteLine($"{Name} is a hacker node (modify {_modifyProbability:P0}, drop {_dropProbability:P0}).");
 		}
 
 
@@ -45,14 +44,15 @@ namespace CommunicationNetwork.Nodes
 			return alteredPayload.ToString();
 		}
 
-		public override void Trasmit(Packet packet, List<Node> path)
+		public override void Trasmit(Packet packet)
 		{
-			Console.WriteLine($"{Name} intercepted packet: {packet.Payload}");
+			Console.WriteLine("Reached Hacker Node:");
+			Console.WriteLine($"\t{Name} intercepted packet: {packet.Payload}");
 
 			// Decide whether to drop
 			if (_rng.NextDouble() < _dropProbability)
 			{
-				Console.WriteLine($"{Name} dropped the packet.");
+				Console.WriteLine($"\t{Name} dropped the packet.");
 				return;
 			}
 
@@ -61,8 +61,10 @@ namespace CommunicationNetwork.Nodes
 			{
 				var original = packet.Payload;
 				packet.Payload = $"{packet.Payload}-[HACKED]";
-				Console.WriteLine($"{Name} modified payload from '{original}' to '{packet.Payload}'.");
+				Console.WriteLine($"\t{Name} modified payload from '{original}' to '{packet.Payload}'.");
 			}
+
+			Console.WriteLine();
 		}
 	}
 }

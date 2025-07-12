@@ -37,20 +37,22 @@ namespace CommunicationNetwork.Nodes
 			return encrypted.ToString();
 		}
 
-		public override void Trasmit(Packet packet, List<Node> path)
+		public override void Trasmit(Packet packet)
 		{
-			Console.WriteLine($"{Name} received packet with payload '{packet.Payload}'.");
+			Console.WriteLine("Reached Vulnerable Node:");
+			Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
 			// Confidentiality attack: log plaintext with some probability
 			if (_rng.NextDouble() < _plaintextProbability)
 			{
-				Console.WriteLine($"{Name} logged plaintext data: {packet.Payload}");
+				Console.WriteLine($"\t{Name} logged plaintext data: {packet.Payload}");
 			}
 			else
 			{
 				var encryptedPayload = EncryptPayload(packet.Payload);
-				Console.WriteLine($"{Name} encrypted payload: {encryptedPayload}");
+				Console.WriteLine($"\t{Name} encrypted payload: {encryptedPayload}");
 				packet.Payload = encryptedPayload; // Update packet with encrypted payload
 			}
+			Console.WriteLine();
 		}
 	}
 }
