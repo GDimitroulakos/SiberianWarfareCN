@@ -53,6 +53,7 @@ namespace CommunicationNetwork.Nodes
 			if (_rng.NextDouble() < _dropProbability)
 			{
 				Console.WriteLine($"\t{Name} dropped the packet.");
+				packet.IsDropped = true;
 				return;
 			}
 

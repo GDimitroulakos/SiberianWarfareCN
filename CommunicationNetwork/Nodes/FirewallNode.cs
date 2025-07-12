@@ -28,6 +28,8 @@ namespace CommunicationNetwork.Nodes
 			else
 			{
 				Console.WriteLine($"\t{Name} dropped the packet.");
+				packet.IsDropped = true;
+				return;
 			}
 			Console.WriteLine();
 		}

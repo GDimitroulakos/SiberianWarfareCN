@@ -1,9 +1,11 @@
 ﻿using CommunicationNetwork.Graph;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace CommunicationNetwork
 {
@@ -14,26 +16,23 @@ namespace CommunicationNetwork
 		/// A packet is a formatted unit of data carried by a packet-switched network.
 		/// </summary>
 		public string Payload { get; set; }
-
-		public Packet()
-		{
-			Payload = string.Empty;
-		}
+		public string Signature { get; }
+		public bool IsDropped { get; set; } = false;
 
 		public Packet(string payload)
 		{
 			Payload = payload;
+			Signature = HashSHA256(payload);
 		}
 
-		public void ChangePayload(string newPayload)
+		public static string HashSHA256(string input)
 		{
-			if (string.IsNullOrEmpty(newPayload))
+			using (SHA256 sha256 = SHA256.Create())
 			{
-				throw new ArgumentException("Payload cannot be null or empty.");
+				byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+				byte[] hashBytes = sha256.ComputeHash(inputBytes);
+				return Convert.ToHexString(hashBytes); 
 			}
-			Payload = newPayload;
-			Console.WriteLine($"Packet payload changed to: {Payload}");
 		}
 	}
-
 }
