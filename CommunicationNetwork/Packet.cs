@@ -14,36 +14,30 @@ namespace CommunicationNetwork
 		/// A packet is a formatted unit of data carried by a packet-switched network.
 		/// </summary>
 		public string Payload { get; set; }
-		public Node Source { get; set; }
-		public Node Destination { get; set; }
-		public Node CurrentNode { get; set; }
 
 		public Packet()
 		{
 			Payload = string.Empty;
 		}
 
-		public bool HasReachedDestination()
+		public Packet(string payload)
 		{
-			if (CurrentNode == null || Destination == null)
+			Payload = payload;
+		}
+
+		public void ChangePayload(string newPayload)
+		{
+			if (string.IsNullOrEmpty(newPayload))
 			{
-				return false; // Cannot determine if the packet has reached its destination
+				throw new ArgumentException("Payload cannot be null or empty.");
 			}
-			if (CurrentNode.Equals(Destination))
-			{
-				Console.WriteLine($"Packet has reached its destination: {Destination.Name}");
-				return true; // Packet has reached its destination
-			}
-			else
-			{
-				Console.WriteLine($"Packet is at {CurrentNode.Name}, not at destination {Destination.Name}.");
-				return false; // Packet has not reached its destination
-			}
+			Payload = newPayload;
+			Console.WriteLine($"Packet payload changed to: {Payload}");
 		}
 	}
 
 	public interface ITransmitter
 	{
-		void Transmit(Packet packet);
+		void Transmit(Packet packet, List<INode> path);
 	}
 }

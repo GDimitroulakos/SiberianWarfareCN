@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CommunicationNetwork.Algorithm;
-using CommunicationNetwork.Algorithms;
+﻿using CommunicationNetwork.Algorithm;
 using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithms {
@@ -18,7 +14,7 @@ namespace CommunicationNetwork.Algorithms {
 
         public DFS(string name) {
             this.Name = name;
-            MetadataKey = this;
+            MetadataKey = name;
         }
         
         public class DFS_NodeMetaData {

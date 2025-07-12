@@ -7,9 +7,10 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     public class BellmanFord : BaseAlgorithm {
+
         public BellmanFord(string name) {
             this.Name = name;
-            MetadataKey = this;
+            MetadataKey = name;
         }
 
         public class BellmanFord_NodeMetadata {
@@ -85,6 +86,7 @@ namespace CommunicationNetwork.Algorithm {
         public void SetGraph(IGraph graph) {
             _graph = graph ?? throw new ArgumentNullException(nameof(graph));
         }
+
         public void SetStart(INode start) {
             _start = start;
         }
@@ -143,9 +145,6 @@ namespace CommunicationNetwork.Algorithm {
             }
         }
 
-
-
-
         public void Relax(INode u, INode v) {
             IEdge edge = _graph.GetEdge(u, v);
             if (edge == null) {
@@ -156,5 +155,19 @@ namespace CommunicationNetwork.Algorithm {
                 SetParent(v, u);
             }
         }
+
+        public List<INode> ShortestPath(INode node)
+        {
+			if (!_graph.Nodes.Contains(node))
+			{
+				throw new ArgumentException($"Node {node.Name} is not part of the graph.");
+			}
+			var graphMetaData = (BellmanFord_GraphMetadata) _graph.MetaData[MetadataKey];
+			if (!graphMetaData._paths.ContainsKey(node))
+			{
+				throw new InvalidOperationException($"No path data available for node {node.Name}. Please run the algorithm first.");
+			}
+			return graphMetaData._paths[node];
+		}
     }
 }

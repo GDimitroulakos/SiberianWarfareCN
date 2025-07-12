@@ -8,18 +8,15 @@ using System.Net.Security;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class VulnerableNode : Node, ITransmitter
+	public class VulnerableNode : Node
 	{
 		private double _plaintextProbability = 0.3;
 		private Random _rng = new Random();
-		private List<ITransmitter> _links = new List<ITransmitter>();
 
 		public VulnerableNode(double plaintextProbability = 0.3)
 		{
 			_plaintextProbability = plaintextProbability;
 		}
-
-		public void AddLink(ITransmitter node) => _links.Add(node);
 
 		public string EncryptPayload(string payload)
 		{
@@ -40,7 +37,7 @@ namespace CommunicationNetwork.Nodes
 			return encrypted.ToString();
 		}
 
-		public void Transmit(Packet packet)
+		public override void Trasmit(Packet packet, List<Node> path)
 		{
 			Console.WriteLine($"{Name} received packet with payload '{packet.Payload}'.");
 			// Confidentiality attack: log plaintext with some probability
@@ -53,13 +50,6 @@ namespace CommunicationNetwork.Nodes
 				var encryptedPayload = EncryptPayload(packet.Payload);
 				Console.WriteLine($"{Name} encrypted payload: {encryptedPayload}");
 				packet.Payload = encryptedPayload; // Update packet with encrypted payload
-			}
-
-			// Forward packet
-			foreach (var link in _links)
-			{
-				Console.WriteLine($"{Name} forwarding packet to {((Node) link).Name}.");
-				link.Transmit(packet);
 			}
 		}
 	}

@@ -15,7 +15,7 @@ namespace CommunicationNetwork.Algorithm {
 
         public TopologicalSort(string name) {
             this.Name = name;
-            MetadataKey = this;
+            MetadataKey = name;
         }
 
         public void SetGraph(IGraph graph) {

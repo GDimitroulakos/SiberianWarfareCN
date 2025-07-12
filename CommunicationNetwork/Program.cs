@@ -2,45 +2,43 @@
 using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
+using CommunicationNetwork.Nodes;
 
 namespace CommunicationNetwork {
     internal class Program {
         static void Main(string[] args) {
-            UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "test");
-            Node node1 = new Node();
-            Node node2 = new Node();
-            Node node3 = new Node();
-            Node node4 = new Node();
-            Node node5 = new Node();
-            Edge edge1 = new Edge(node1, node2);
-            Edge edge2 = new Edge(node2, node3);
-            Edge edge3 = new Edge(node1, node4);
-            Edge edge4 = new Edge(node1, node5);
-            Edge edge5 = new Edge(node4, node5);
-            Edge edge6 = new Edge(node3, node5);
-            graph.AddNode(node1);
-            graph.AddNode(node2);
-            graph.AddNode(node3);
-            graph.AddNode(node4);
-            graph.AddNode(node5);
+            UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "ug");
+            Node tns = new TerminalNode(TerminalNode.TerminalType.Sender);
+            Node hn = new HackerNode();
+            Node vn = new VulnerableNode();
+            Node fn = new FirewallNode(packet => (packet.Payload.Length >= 10 && packet.Payload.Length <=30));
+            Node tnr = new TerminalNode(TerminalNode.TerminalType.Receiver);
+            Edge edge1 = new Edge(tns, vn);
+            Edge edge2 = new Edge(vn, fn);
+            Edge edge3 = new Edge(fn, hn);
+            Edge edge4 = new Edge(hn, tnr);
+
+            graph.AddNode(tns);
+            graph.AddNode(hn);
+            graph.AddNode(vn);
+            graph.AddNode(fn);
+            graph.AddNode(tnr);
             graph.AddEdge(edge1);
             graph.AddEdge(edge2);
             graph.AddEdge(edge3);
             graph.AddEdge(edge4);
-            graph.AddEdge(edge5);
 
-            DirectedGraph directedGraph = new DirectedGraph(new DirectedAdjacencyListStorage(), "test_directed");
-            directedGraph.AddNode(node1);
-            directedGraph.AddNode(node2);
-            directedGraph.AddNode(node3);
-            directedGraph.AddNode(node4);
-            directedGraph.AddNode(node5);
+            DirectedGraph directedGraph = new DirectedGraph(new DirectedAdjacencyListStorage(), "dg");
+            directedGraph.AddNode(tns);
+            directedGraph.AddNode(hn);
+            directedGraph.AddNode(vn);
+            directedGraph.AddNode(fn);
+            directedGraph.AddNode(tnr);
             directedGraph.AddEdge(edge1);
             directedGraph.AddEdge(edge2);
             directedGraph.AddEdge(edge3);
             directedGraph.AddEdge(edge4);
-            directedGraph.AddEdge(edge5);
-            directedGraph.AddEdge(edge6);
+
 
             /*  DFSUndirected dfs = new DFSUndirected();
                   dfs.SetUnDirectedGraph(graph);
@@ -48,38 +46,47 @@ namespace CommunicationNetwork {
              */
 
             // Run DFS on directed graph
-            DFS dfsDirected = new DFS("dfs1");
+            DFS dfsDirected = new DFS("dfs");
             dfsDirected.SetGraph(directedGraph);
             dfsDirected.Execute();
 
-            BFS bfsDirected = new BFS("bfs1");
+            BFS bfsDirected = new BFS("bfs");
             bfsDirected.SetGraph(directedGraph);
-            bfsDirected.SetSource(node1);
+            bfsDirected.SetSource(tns);
             bfsDirected.Execute();
 
-            
-
-
             BellmanFord bellmanFordDirected = new BellmanFord("bf1");
-            bellmanFordDirected.SetWeight(edge1, 2);
-            bellmanFordDirected.SetWeight(edge2, 3);
+            bellmanFordDirected.SetWeight(edge1, 1);
+            bellmanFordDirected.SetWeight(edge2, 1);
             bellmanFordDirected.SetWeight(edge3, 1);
-            bellmanFordDirected.SetWeight(edge4, 4);
-            bellmanFordDirected.SetWeight(edge5, 2);
-            bellmanFordDirected.SetWeight(edge6, 5);
-            bellmanFordDirected.SetStart(node1);
+            bellmanFordDirected.SetWeight(edge4, 1);
+            bellmanFordDirected.SetStart(tns);
             bellmanFordDirected.SetGraph(directedGraph);
             bellmanFordDirected.Execute();
 
-            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            TopologicalSort topologicalSort = new TopologicalSort("ts1");
             topologicalSort.SetGraph(directedGraph);
             topologicalSort.SetDFS(dfsDirected);
             topologicalSort.Execute();
 
-            GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
-            graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
+            // Traverse path with packet
+            Packet packet = new Packet("Hello World");
+			//var graphMeta = (BellmanFord.BellmanFord_GraphMetadata) bellmanFordDirected.MetaData["bf1"];
+			//Dictionary<INode, List<INode>> paths = graphMeta._paths;
+
+			List<INode> path = new List<INode> { tns, vn, fn, hn, tnr };
+			// List<Node> path = paths[tns].Select(n => (Node) n).ToList();
+			foreach (Node node in path)
+            {
+				node.Trasmit(packet, null);
+			}
+			
+
+
+			GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
+            //graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
+            //graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
+            //graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
             graphToDOTGeneration.AddEdgeMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.AddNodeMetadataKey(bellmanFordDirected.MetadataKey);
             graphToDOTGeneration.AddGraphMetadataKey(bellmanFordDirected.MetadataKey);
@@ -96,9 +103,9 @@ namespace CommunicationNetwork {
 
             //DFSDirectedGraphVizNodeLabelPrinter ndp = new DFSDirectedGraphVizNodeLabelPrinter(
             //    new DFSDirectedGraphvizFixedSizePropertyPrinter(
-            //        new DFSGraphvizNodePrinter() ));
+            //        new DFSGraphvizNodePrinter()));
             //DFSGraphvizEdgePrinter dgep = new DFSGraphvizEdgePrinter();
-            //DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp,dgep);
+            //DirectedGraphGraphvizPrinter dgp = new DirectedGraphGraphvizPrinter(ndp, dgep);
 
             //// Print the directed graph to DOT and generate GIF
             //dgp.ToDot(directedGraph, "test_directed.dot");

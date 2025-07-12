@@ -9,13 +9,13 @@ namespace CommunicationNetwork.Graph {
 
     public interface INode : IGraphElement{
         public Dictionary<object, object> MetaData { get; }
-    }
+	}
 
     public interface INode<T> : INode {
         T Value { get; }
     }
 
-    public class Node : INode {
+    public abstract class Node : INode {
         public virtual string Name { get; }
         public Type ElementType { get; }
         public Dictionary<object, object> MetaData { get; }
@@ -29,9 +29,11 @@ namespace CommunicationNetwork.Graph {
             MetaData = new Dictionary<object, object>();
             ElementType = typeof(Node);
         }
-    }
 
-    public class Node<T> : Node ,INode<T>{
+		public abstract void Trasmit(Packet packet, List<Node> path);
+	}
+
+    public abstract class Node<T> : Node ,INode<T>{
         public T Value { get; set; }
         public override string Name => "Node_" + typeof(T).Name + "_" + m_serialNumber;
         public Node() : base() {

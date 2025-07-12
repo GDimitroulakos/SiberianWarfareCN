@@ -45,7 +45,7 @@ namespace CommunicationNetwork.Algorithm {
 
         public BFS(string name) {
             this.Name = name;
-            MetadataKey = this;
+            MetadataKey = name;
         }
 
         // 4. Accessor methods
