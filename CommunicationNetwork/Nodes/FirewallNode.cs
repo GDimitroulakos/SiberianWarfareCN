@@ -20,13 +20,13 @@ namespace CommunicationNetwork.Nodes
 
 		public void FilterData()
 		{
-			Console.WriteLine($"{Name} is filtering data.");
+			Console.WriteLine($"{ID} is filtering data.");
 			// Logic for filtering data packets
 		}
 
 		public void LogTraffic()
 		{
-			Console.WriteLine($"{Name} is logging traffic.");
+			Console.WriteLine($"{ID} is logging traffic.");
 			// Logic for logging network traffic
 		}
 	}

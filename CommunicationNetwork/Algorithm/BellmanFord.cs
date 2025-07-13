@@ -7,36 +7,34 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     public class BellmanFord : BaseAlgorithm {
-        public BellmanFord(string name) {
-            this.Name = name;
-            MetadataKey = this;
+        public BellmanFord(string name):base() {
         }
 
         public class BellmanFord_NodeMetadata {
             public double Distance;
-            public INode Parent;
-            public BellmanFord_NodeMetadata(double distance, INode parent) {
+            public Node Parent;
+            public BellmanFord_NodeMetadata(double distance, Node parent) {
                 Distance = distance;
                 Parent = parent;
             }
             public override string ToString() {
-                string parentName = Parent?.Name ?? "null";
+                string parentName = Parent?.ID ?? "null";
                 return $"Bellman-Ford Results\nDistance={Distance}\nParent={parentName}";
             }
         }
         
 
-        public double Distance(INode node) {
+        public double Distance(Node node) {
             return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Distance;
         }
-        public void SetDistance(INode node, double distance) {
+        public void SetDistance(Node node, double distance) {
             var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
             metaData.Distance = distance;
         }
-        public INode Parent(INode node) {
+        public Node Parent(Node node) {
             return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Parent;
         }
-        public  void SetParent(INode node, INode parent) {
+        public  void SetParent(Node node, Node parent) {
             var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
             metaData.Parent = parent;
         }
@@ -52,11 +50,11 @@ namespace CommunicationNetwork.Algorithm {
             }
         }
 
-        public double Weight(IEdge edge) {
+        public double Weight(Edge edge) {
             return ((BellmanFord_EdgeMetadata)edge.MetaData[MetadataKey])._weight;
         }
 
-        public void SetWeight(IEdge edge, double weight) {
+        public void SetWeight(Edge edge, double weight) {
             if (!edge.MetaData.ContainsKey(MetadataKey)) {
                 edge.MetaData[MetadataKey] = new BellmanFord_EdgeMetadata(weight);
             } else {
@@ -65,27 +63,27 @@ namespace CommunicationNetwork.Algorithm {
         }
 
         public class BellmanFord_GraphMetadata {
-            public Dictionary<INode, List<INode>> _paths;
+            public Dictionary<Node, List<Node>> _paths;
             public BellmanFord_GraphMetadata() {
-                _paths = new Dictionary<INode, List<INode>>();
+                _paths = new Dictionary<Node, List<Node>>();
             }
             public override string ToString() {
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("Bellman-Ford Graph MetaData:");
                 foreach (var kvp in _paths) {
-                    sb.AppendLine($"{kvp.Key.Name}: {string.Join(" -> ", kvp.Value.Select(n => n.Name))}");
+                    sb.AppendLine($"{kvp.Key.ID}: {string.Join(" -> ", kvp.Value.Select(n => n.ID))}");
                 }
                 return sb.ToString();
             }
         }
 
         private IGraph _graph;
-        private INode _start;
+        private Node _start;
 
         public void SetGraph(IGraph graph) {
             _graph = graph ?? throw new ArgumentNullException(nameof(graph));
         }
-        public void SetStart(INode start) {
+        public void SetStart(Node start) {
             _start = start;
         }
 
@@ -132,9 +130,9 @@ namespace CommunicationNetwork.Algorithm {
             var graphMetaData = (BellmanFord_GraphMetadata)_graph.MetaData[MetadataKey];
             foreach (var node in _graph.Nodes) {
                 if (!graphMetaData._paths.ContainsKey(node)) {
-                    graphMetaData._paths[node] = new List<INode>();
+                    graphMetaData._paths[node] = new List<Node>();
                 }
-                INode current = node;
+                Node current = node;
                 while (current != null) {
                     graphMetaData._paths[node].Add(current);
                     current = Parent(current);
@@ -146,10 +144,10 @@ namespace CommunicationNetwork.Algorithm {
 
 
 
-        public void Relax(INode u, INode v) {
-            IEdge edge = _graph.GetEdge(u, v);
+        public void Relax(Node u, Node v) {
+            Edge edge = _graph.GetEdge(u, v);
             if (edge == null) {
-                throw new InvalidOperationException($"Edge from {u.Name} to {v.Name} does not exist.");
+                throw new InvalidOperationException($"Edge from {u.ID} to {v.ID} does not exist.");
             }
             if (Distance(u) + Weight(edge) < Distance(v)) {
                 SetDistance(v, Distance(u) + Weight(edge));

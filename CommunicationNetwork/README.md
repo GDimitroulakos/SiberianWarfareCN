@@ -75,7 +75,7 @@ An undirected graph treats edges as bidirectional connections.
 // - A list of all nodes in the graph
 // - A list of all edges in the graph  
 // - A dictionary mapping each node to its connected edges
-Dictionary<INode, List<IEdge>> edgesByNode = new Dictionary<INode, List<IEdge>>();
+Dictionary<Node, List<Edge>> edgesByNode = new Dictionary<Node, List<Edge>>();
 ```
 
 **How it works:**
@@ -136,8 +136,8 @@ A directed graph respects the direction of edges.
 // This storage class maintains:
 // - A list of all nodes and edges (like undirected)
 // - Separate dictionaries for incoming and outgoing edges per node
-Dictionary<INode, List<IEdge>> outgoingEdge = new Dictionary<INode, List<IEdge>>();
-Dictionary<INode, List<IEdge>> incomingEdge = new Dictionary<INode, List<IEdge>>();
+Dictionary<Node, List<Edge>> outgoingEdge = new Dictionary<Node, List<Edge>>();
+Dictionary<Node, List<Edge>> incomingEdge = new Dictionary<Node, List<Edge>>();
 ```
 
 **How it works:**
@@ -522,12 +522,12 @@ public class DFS : BaseAlgorithm {
     private int time = 0;
     
     // 5. ACCESSOR METHODS - Static methods to read results
-    public static string Color(INode node) { /* implementation */ }
-    public static int TimeDiscovered(INode node) { /* implementation */ }
-    public static int TimeFinished(INode node) { /* implementation */ }
+    public static string Color(Node node) { /* implementation */ }
+    public static int TimeDiscovered(Node node) { /* implementation */ }
+    public static int TimeFinished(Node node) { /* implementation */ }
     
     // 6. SETTER METHODS - Private methods to modify state
-    private void SetColor(INode node, string color) { /* implementation */ }
+    private void SetColor(Node node, string color) { /* implementation */ }
     
     // 7. REQUIRED OVERRIDES - From BaseAlgorithm
     public override void Initialize() { /* setup */ }
@@ -563,16 +563,16 @@ public class YourAlgorithm : BaseAlgorithm {
     private int algorithmState = 0; // Example state variable
     
     // STEP 4: Create accessor methods (static for easy access)
-    public static string GetSomeProperty(INode node) {
+    public static string GetSomeProperty(Node node) {
         return ((YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey]).SomeProperty;
     }
     
-    public static int GetSomeValue(INode node) {
+    public static int GetSomeValue(Node node) {
         return ((YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey]).SomeValue;
     }
     
     // STEP 5: Create setter methods (private for encapsulation)
-    private void SetSomeProperty(INode node, string value) {
+    private void SetSomeProperty(Node node, string value) {
         var metaData = (YourAlgorithm_NodeMetaData)node.MetaData[MetadataKey];
         metaData.SomeProperty = value;
     }
@@ -588,7 +588,7 @@ public class YourAlgorithm : BaseAlgorithm {
         algorithmState = 0;
         
         // Initialize metadata for all nodes
-        foreach (INode node in _graph.Nodes) {
+        foreach (Node node in _graph.Nodes) {
             node.MetaData[MetadataKey] = new YourAlgorithm_NodeMetaData() {
                 SomeProperty = "InitialValue",
                 SomeValue = -1,
@@ -602,14 +602,14 @@ public class YourAlgorithm : BaseAlgorithm {
         Initialize();
         
         // Implement your algorithm logic here
-        foreach (INode node in _graph.Nodes) {
+        foreach (Node node in _graph.Nodes) {
             // Process each node according to your algorithm
             ProcessNode(node);
         }
     }
     
     // STEP 8: Add your algorithm-specific helper methods
-    private void ProcessNode(INode node) {
+    private void ProcessNode(Node node) {
         // Your algorithm logic here
         SetSomeProperty(node, "Processed");
         algorithmState++;
@@ -631,7 +631,7 @@ public class BFS : BaseAlgorithm {
     public class BFS_NodeMetaData {
         public string Color;      // WHITE, GRAY, BLACK
         public int Distance;      // Distance from source
-        public INode Parent;      // Parent in BFS tree
+        public Node Parent;      // Parent in BFS tree
         
         public override string ToString() {
             string parentName = Parent?.Name ?? "null";
@@ -641,33 +641,33 @@ public class BFS : BaseAlgorithm {
     
     // 3. Algorithm state
     private IGraph _graph;
-    private Queue<INode> queue;
+    private Queue<Node> queue;
     
     // 4. Accessor methods
-    public static string Color(INode node) {
+    public static string Color(Node node) {
         return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
     }
     
-    public static int Distance(INode node) {
+    public static int Distance(Node node) {
         return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Distance;
     }
     
-    public static INode Parent(INode node) {
+    public static Node Parent(Node node) {
         return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Parent;
     }
     
     // 5. Setter methods
-    private void SetColor(INode node, string color) {
+    private void SetColor(Node node, string color) {
         var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
         metaData.Color = color;
     }
     
-    private void SetDistance(INode node, int distance) {
+    private void SetDistance(Node node, int distance) {
         var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
         metaData.Distance = distance;
     }
     
-    private void SetParent(INode node, INode parent) {
+    private void SetParent(Node node, Node parent) {
         var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
         metaData.Parent = parent;
     }
@@ -679,9 +679,9 @@ public class BFS : BaseAlgorithm {
     
     // 7. Required overrides
     public override void Initialize() {
-        queue = new Queue<INode>();
+        queue = new Queue<Node>();
         
-        foreach (INode node in _graph.Nodes) {
+        foreach (Node node in _graph.Nodes) {
             node.MetaData[MetadataKey] = new BFS_NodeMetaData() {
                 Color = "WHITE",
                 Distance = int.MaxValue, // Infinity
@@ -700,16 +700,16 @@ public class BFS : BaseAlgorithm {
     }
     
     // 8. Algorithm-specific methods
-    private void BFSFromSource(INode source) {
+    private void BFSFromSource(Node source) {
         SetColor(source, "GRAY");
         SetDistance(source, 0);
         SetParent(source, null);
         queue.Enqueue(source);
         
         while (queue.Count > 0) {
-            INode current = queue.Dequeue();
+            Node current = queue.Dequeue();
             
-            foreach (INode neighbor in _graph.GetNeighbors(current)) {
+            foreach (Node neighbor in _graph.GetNeighbors(current)) {
                 if (Color(neighbor) == "WHITE") {
                     SetColor(neighbor, "GRAY");
                     SetDistance(neighbor, Distance(current) + 1);
@@ -782,7 +782,7 @@ When creating your own algorithms, consider:
 
 #### 5.3 Graph Type Requirements
 - **Does your algorithm work on directed, undirected, or both?**
-- **Do you need weighted edges?** (You might need `IEdge<T>` where T is a weight type)
+- **Do you need weighted edges?** (You might need `Edge<T>` where T is a weight type)
 
 #### 5.4 Initialization Strategy
 - **How do you handle multiple components?**
@@ -793,7 +793,7 @@ When creating your own algorithms, consider:
 
 #### Pattern 1: Source-Based Algorithms (BFS, Dijkstra)
 ```csharp
-public void SetSource(INode source) {
+public void SetSource(Node source) {
     _sourceNode = source;
 }
 
@@ -809,10 +809,10 @@ public override void Execute() {
 ```csharp
 // For algorithms that need edge weights
 public class Dijkstra : BaseAlgorithm {
-    // Assume edges implement IEdge<double> for weights
+    // Assume edges implement Edge<double> for weights
     
-    private double GetEdgeWeight(IEdge edge) {
-        if (edge is IEdge<double> weightedEdge) {
+    private double GetEdgeWeight(Edge edge) {
+        if (edge is Edge<double> weightedEdge) {
             return weightedEdge.Value;
         }
         return 1.0; // Default weight
@@ -823,8 +823,8 @@ public class Dijkstra : BaseAlgorithm {
 #### Pattern 3: Algorithms with Complex State
 ```csharp
 public class StronglyConnectedComponents : BaseAlgorithm {
-    private Stack<INode> finishStack;
-    private Dictionary<INode, int> componentMap;
+    private Stack<Node> finishStack;
+    private Dictionary<Node, int> componentMap;
     private int componentCount;
     
     // Multiple passes over the graph

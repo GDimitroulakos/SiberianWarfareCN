@@ -6,68 +6,81 @@ using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithms {
-    
-    
-    public class DFS : BaseAlgorithm {
-        private Dictionary<string, object> _dictData = new Dictionary<string, object>();
+
+
+    public class DFS : BaseAlgorithm, IDataProvider {
+        protected Dictionary<string, object> _outputDataLinks = new Dictionary<string, object>();
+
         IGraph _graph;
         int time = 0;
-        
-        
-        
 
-        public DFS(string name) {
-            this.Name = name;
-            MetadataKey = this;
+        // Input data Metadata keys
+        // None
+
+
+        // Output data Metadata keys
+        readonly string K_COLOR = "COLOR";
+        readonly string K_TIMEDISCOVERY = "TIMEDISCOVERED";
+        readonly string K_TIMEFINISHED = "TimeFinished";
+
+
+        public DFS(string name):base() {
+            // Initialize the output data links
+            _outputDataLinks["COLOR"] = K_COLOR;
+            _outputDataLinks["TIMEDISCOVERED"] = K_TIMEDISCOVERY;
+            _outputDataLinks["TIMEFINISHED"] = K_TIMEFINISHED;
         }
         
-        public class DFS_NodeMetaData {
-            public string Color; // WHITE, GRAY, BLACK
-            public int TimeDiscovered; // Time when the node was discovered
-            public int TimeFinished; // Time when the node was finished
-
-            public override string ToString() {
-                return $"DFS NodeMetaData \nColor={Color}\nTimeDiscovered={TimeDiscovered}\nTimeFinished={TimeFinished}";
+        public void SetColor(Node node, string color) {
+            node.MetaData[K_COLOR] = color;
+        }
+        public string Color(Node node) {
+            if (node.MetaData.TryGetValue(K_COLOR, out var color)) {
+                return color as string;
             }
+            throw new InvalidOperationException($"Color metadata not found for node {node.ID}.");
         }
-        
+        public void SetTimeDiscovered(Node node, int time) {
+            node.MetaData[K_TIMEDISCOVERY] = time;
+        }
+        public int TimeDiscovered(Node node) {
+            if (node.MetaData.TryGetValue(K_TIMEDISCOVERY, out var time)) {
+                return (int)time;
+            }
+            throw new InvalidOperationException($"TimeDiscovered metadata not found for node {node.ID}.");
+        }
+        public void SetTimeFinished(Node node, int time) {
+            node.MetaData[K_TIMEFINISHED] = time;
+        }
+        public int TimeFinished(Node node) {
+            if (node.MetaData.TryGetValue(K_TIMEFINISHED, out var time)) {
+                return (int)time;
+            }
+            throw new InvalidOperationException($"TimeFinished metadata not found for node {node.ID}.");
+        }
+
+
         public IGraph Graph() {
             return _graph;
         }
         public void SetGraph(IGraph graph) {
             _graph = graph;
         }
-        public string Color(INode node) {
-            return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
-        }
-        public void SetColor(INode node, string color) {
-            var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
-            metaData.Color = color;
-        }
-        public int TimeDiscovered(INode node) {
-           return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).TimeDiscovered;
-        }
-        private void SetTimeDiscovered(INode node, int t) {
-            var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
-            metaData.TimeDiscovered = t;
-        }
-        public int TimeFinished(INode node) {
-            return ((DFS_NodeMetaData)node.MetaData[MetadataKey]).TimeFinished;
-        } 
-        private void SetTimeFinished(INode node, int t) {
-            var metaData = (DFS_NodeMetaData)node.MetaData[MetadataKey];
-            metaData.TimeFinished = t;
-        }
         
+        public object GetDatakey(string key) {
+            if (_outputDataLinks.TryGetValue(key, out var value)) {
+                return value;
+            }
+            throw new KeyNotFoundException($"Data key '{key}' not found in DFS algorithm.");
+        }
+
         public override void Initialize() {
             time = 0;
-            foreach (INode node in _graph.Nodes) {
+            foreach (Node node in _graph.Nodes) {
                 // Initialize metadata for each node
-                node.MetaData[MetadataKey] = new DFS_NodeMetaData() {
-                    Color = "WHITE",  // Unvisited
-                    TimeDiscovered = -1, // Not discovered
-                    TimeFinished = -1 // Not finished
-                };
+                SetColor(node,"WHITE");
+                SetTimeDiscovered(node,-1);
+                SetTimeFinished(node, -1);
             }
         }
 
@@ -77,14 +90,14 @@ namespace CommunicationNetwork.Algorithms {
                 throw new InvalidOperationException("Graph is not set or is empty.");
             }
 
-            foreach (INode node in _graph.Nodes) {
+            foreach (Node node in _graph.Nodes) {
                 if (Color(node) == "WHITE") {
                     DFSVisit(node);
                 }
             }
         }
 
-        private void DFSVisit(INode node) {
+        private void DFSVisit(Node node) {
             time = time + 1;
             SetTimeDiscovered(node,time);
             SetColor(node, "GRAY"); // Visiting

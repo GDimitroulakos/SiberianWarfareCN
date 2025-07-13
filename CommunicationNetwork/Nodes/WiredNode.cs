@@ -13,16 +13,16 @@ namespace CommunicationNetwork.Nodes
 		public WiredNode() : base()
 		{
 			// Initialization logic for wired node
-			Console.WriteLine($"{Name} is a wired node.");
+			Console.WriteLine($"{ID} is a wired node.");
 		}
 		public void Connect()
 		{
-			Console.WriteLine($"{Name} is connecting to the network.");
+			Console.WriteLine($"{ID} is connecting to the network.");
 			// Logic for establishing a connection
 		}
 		public void Disconnect()
 		{
-			Console.WriteLine($"{Name} is disconnecting from the network.");
+			Console.WriteLine($"{ID} is disconnecting from the network.");
 			// Logic for terminating a connection
 		}
 	}

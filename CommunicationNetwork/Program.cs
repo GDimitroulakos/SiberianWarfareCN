@@ -75,6 +75,9 @@ namespace CommunicationNetwork {
             topologicalSort.SetGraph(directedGraph);
             topologicalSort.SetDFS(dfsDirected);
             topologicalSort.Execute();
+            foreach (Node topologicalSortTopologicalOrderedNode in topologicalSort.TopologicalOrderedNodes) {
+                Console.Write($"{topologicalSortTopologicalOrderedNode.ID},");
+            }
 
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
             graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);

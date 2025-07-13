@@ -8,26 +8,31 @@ using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
     public class TopologicalSort :BaseAlgorithm {
-        private DFS _dfs;
         private IGraph _graph;
-        private List<INode> _topologicalOrderedNodes;
-        public IEnumerable<INode> TopologicalOrderedNodes => _topologicalOrderedNodes.AsReadOnly();
+        private DFS _dfs;
+        private List<Node> _topologicalOrderedNodes;
+        public IEnumerable<Node> TopologicalOrderedNodes => _topologicalOrderedNodes.AsReadOnly();
 
-        public TopologicalSort(string name) {
-            this.Name = name;
-            MetadataKey = this;
+        public TopologicalSort(string name) :base(name){
         }
 
         public void SetGraph(IGraph graph) {
             _graph = graph;
         }
 
-        public void SetDFS(DFS dfs) {
-            _dfs = dfs;
+        public void SetDFS(string key) {
+            if ( AlgorithmScope.Instance.GetAlgorithm(key) == null) {
+                throw new ArgumentException($"No DFS algorithm found with key '{key}'.");
+            } else if (AlgorithmScope.Instance.GetAlgorithm(key) is not DFS) {
+                throw new ArgumentException($"Algorithm with key '{key}' is not of type DFS.");
+            }
+            _dfs = (DFS)AlgorithmScope.Instance.GetAlgorithm(key);
+            AddInput("DFS", _dfs);
         }
+        
 
-        private int TimeFinished(INode node) {
-            return _dfs.TimeFinished(node);
+        private int TimeFinished(Node node) {
+            
         }
 
         public override void Execute() {

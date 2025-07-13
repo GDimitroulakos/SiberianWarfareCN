@@ -34,13 +34,13 @@ namespace CommunicationNetwork.Nodes
 		public void PullOrder()
 		{
 			// Logic for pulling an order
-			Console.WriteLine($"{Name} is pulling an order.");
+			Console.WriteLine($"{ID} is pulling an order.");
 		}
 
 		public void PushOrder()
 		{
 			// Logic for pushing an order
-			Console.WriteLine($"{Name} is pushing an order.");
+			Console.WriteLine($"{ID} is pushing an order.");
 		}
 	}
 }

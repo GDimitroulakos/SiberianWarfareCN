@@ -15,16 +15,16 @@ namespace CommunicationNetwork.Nodes
 	{
 		public WirelessNode() : base()
 		{
-			Console.WriteLine($"{Name} is a wireless node.");
+			Console.WriteLine($"{ID} is a wireless node.");
 		}
 		public void Connect()
 		{
-			Console.WriteLine($"{Name} is connecting wirelessly to the network.");
+			Console.WriteLine($"{ID} is connecting wirelessly to the network.");
 			// Logic for establishing a wireless connection
 		}
 		public void Disconnect()
 		{
-			Console.WriteLine($"{Name} is disconnecting from the wireless network.");
+			Console.WriteLine($"{ID} is disconnecting from the wireless network.");
 			// Logic for terminating a wireless connection
 		}
 	}

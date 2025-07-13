@@ -14,7 +14,7 @@ namespace CommunicationNetwork.Graph {
     public interface IGraphElement {
         Type ElementType { get; } // Type of the graph element (Node, Edge, Graph)}
         Dictionary<object, object> MetaData { get; }
-        string Name { get; }
+        string ID { get; }
         int Serial { get; }
     }
 
@@ -31,26 +31,26 @@ namespace CommunicationNetwork.Graph {
     /// the necessary methods to add and remove nodes and edges
     /// </summary>
     public interface IGraphStorage {
-        IReadOnlyList<INode> Nodes { get; }
-        IReadOnlyList<IEdge> Edges { get; }
+        IReadOnlyList<Node> Nodes { get; }
+        IReadOnlyList<Edge> Edges { get; }
 
-        void AddNode(INode node);
-        void AddEdge(IEdge edge);
-        void RemoveNode(INode node);
-        void RemoveEdge(IEdge edge);
-        bool HasEdge(IEdge edge);
-        bool HasNode(INode node);
-        bool AreConnected(INode source, INode target);
+        void AddNode(Node node);
+        void AddEdge(Edge edge);
+        void RemoveNode(Node node);
+        void RemoveEdge(Edge edge);
+        bool HasEdge(Edge edge);
+        bool HasNode(Node node);
+        bool AreConnected(Node source, Node target);
     }
 
     public interface IDirectedGraphStorage : IGraphStorage {
-        IReadOnlyList<IEdge> GetOutgoingEdges(INode node);
-        IReadOnlyList<IEdge> GetIncomingEdges(INode node);
+        IReadOnlyList<Edge> GetOutgoingEdges(Node node);
+        IReadOnlyList<Edge> GetIncomingEdges(Node node);
     }
 
     public interface IUndirectedGraphStorage : IGraphStorage {
-        IReadOnlyList<IEdge> GetEdges(INode node);
-        IReadOnlyList<INode> GetNeighbors(INode node);
+        IReadOnlyList<Edge> GetEdges(Node node);
+        IReadOnlyList<Node> GetNeighbors(Node node);
     }
 
     // <summary>
@@ -58,14 +58,14 @@ namespace CommunicationNetwork.Graph {
     /// The graph is consistent by construction by the provided methods. Deletion methods assume
     /// consistency of the graph, so that the graph is always in a valid state.
     public class AdjacencyListStorage : IGraphStorage {
-        public IReadOnlyList<INode> Nodes => nodes.AsReadOnly();
-        public IReadOnlyList<IEdge> Edges => edges.AsReadOnly();
+        public IReadOnlyList<Node> Nodes => nodes.AsReadOnly();
+        public IReadOnlyList<Edge> Edges => edges.AsReadOnly();
 
 
-        List<INode> nodes = new List<INode>();
-        List<IEdge> edges = new List<IEdge>();
+        List<Node> nodes = new List<Node>();
+        List<Edge> edges = new List<Edge>();
 
-        public virtual void AddNode(INode node) {
+        public virtual void AddNode(Node node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
             } else if (nodes.Contains(node)) { // Check if the node already exists in the graph
@@ -73,7 +73,7 @@ namespace CommunicationNetwork.Graph {
             }
             nodes.Add(node); // Add the node to the list of nodes
         }
-        public virtual void AddEdge(IEdge edge) {
+        public virtual void AddEdge(Edge edge) {
             if (edge == null) { // Check for null edge
                 throw new ArgumentNullException(nameof(edge));
             } else if (edges.Contains(edge)) { // Check if the edge already exists in the graph
@@ -88,13 +88,13 @@ namespace CommunicationNetwork.Graph {
             edges.Add(edge); // Add the edge to the list of edges
         }
 
-        public virtual bool HasNode(INode node) {
+        public virtual bool HasNode(Node node) {
             return nodes.Contains(node);
         }
-        public virtual bool HasEdge(IEdge edge) {
+        public virtual bool HasEdge(Edge edge) {
             return edges.Contains(edge);
         }
-        public virtual void RemoveNode(INode node) {
+        public virtual void RemoveNode(Node node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
             } else if (!nodes.Contains(node)) { // Check if the node exists in the graph
@@ -102,7 +102,7 @@ namespace CommunicationNetwork.Graph {
             }
             nodes.Remove(node);
         }
-        public virtual void RemoveEdge(IEdge edge) {
+        public virtual void RemoveEdge(Edge edge) {
             if (edge == null) { // Check for null edge
                 throw new ArgumentNullException(nameof(edge));
             } else if (!edges.Contains(edge)) { // Check if the edge exists in the graph
@@ -111,7 +111,7 @@ namespace CommunicationNetwork.Graph {
             edges.Remove(edge); // Remove the edge from the list of edges
         }
 
-        public virtual bool AreConnected(INode source, INode target) {
+        public virtual bool AreConnected(Node source, Node target) {
             if (source == null || target == null)
                 throw new ArgumentNullException("Source and target nodes cannot be null.");
             return edges.Any(edge => edge.Source.Equals(source) && edge.Target.Equals(target));
@@ -119,34 +119,34 @@ namespace CommunicationNetwork.Graph {
     }
 
     public class DirectedAdjacencyListStorage : AdjacencyListStorage, IDirectedGraphStorage {
-        Dictionary<INode, List<IEdge>> outgoingEdge = new Dictionary<INode, List<IEdge>>();
-        Dictionary<INode, List<IEdge>> incomingEdge = new Dictionary<INode, List<IEdge>>();
+        Dictionary<Node, List<Edge>> outgoingEdge = new Dictionary<Node, List<Edge>>();
+        Dictionary<Node, List<Edge>> incomingEdge = new Dictionary<Node, List<Edge>>();
 
-        public IReadOnlyList<IEdge> GetOutgoingEdges(INode node) {
+        public IReadOnlyList<Edge> GetOutgoingEdges(Node node) {
             ValidateNodeExists(node);
             // Return the outgoing edges for the node
             return outgoingEdge[node].AsReadOnly();
         }
 
-        public IReadOnlyList<IEdge> GetIncomingEdges(INode node) {
+        public IReadOnlyList<Edge> GetIncomingEdges(Node node) {
             ValidateNodeExists(node);
             // Return the incoming edges for the node
             return incomingEdge[node].AsReadOnly();
         }
 
-        public override void AddNode(INode node) {
+        public override void AddNode(Node node) {
             base.AddNode(node);
-            outgoingEdge[node] = new List<IEdge>(); // Initialize the outgoing edges list for the node
-            incomingEdge[node] = new List<IEdge>(); // Initialize the incoming edges list for the node
+            outgoingEdge[node] = new List<Edge>(); // Initialize the outgoing edges list for the node
+            incomingEdge[node] = new List<Edge>(); // Initialize the incoming edges list for the node
         }
 
-        public override void AddEdge(IEdge edge) {
+        public override void AddEdge(Edge edge) {
             base.AddEdge(edge);
             outgoingEdge[edge.Source].Add(edge); // Add the edge to the outgoing edges of the source node
             incomingEdge[edge.Target].Add(edge); // Add the edge to the incoming edges of the target node
         }
 
-        public override void RemoveNode(INode node) {
+        public override void RemoveNode(Node node) {
             base.RemoveNode(node);
             // Remove all outgoing edges associated with the node
             foreach (var edge in outgoingEdge[node]) { // Check for outgoing edges
@@ -162,12 +162,12 @@ namespace CommunicationNetwork.Graph {
             }
             incomingEdge.Remove(node); // Remove the node from the incoming edges dictionary
         }
-        public override void RemoveEdge(IEdge edge) {
+        public override void RemoveEdge(Edge edge) {
             base.RemoveEdge(edge);
             outgoingEdge[edge.Source].Remove(edge); // Remove the edge from the outgoing edges of the source node
             incomingEdge[edge.Target].Remove(edge); // Remove the edge from the incoming edges of the target node
         }
-        private void ValidateNodeExists(INode node) {
+        private void ValidateNodeExists(Node node) {
             if (node == null) { // Check for null node
                 throw new ArgumentNullException(nameof(node));
             } else if (!Nodes.Contains(node)) {// Check if the node exists in the graph
@@ -179,14 +179,14 @@ namespace CommunicationNetwork.Graph {
         }
     }
     public class UndirectedAdjacencyListStorage : AdjacencyListStorage, IUndirectedGraphStorage {
-        Dictionary<INode, List<IEdge>> edgesByNode = new Dictionary<INode, List<IEdge>>();
+        Dictionary<Node, List<Edge>> edgesByNode = new Dictionary<Node, List<Edge>>();
 
-        public IReadOnlyList<IEdge> GetEdges(INode node) {
+        public IReadOnlyList<Edge> GetEdges(Node node) {
             ValidateNodeExists(node);
             return edgesByNode[node].AsReadOnly();
         }
         // Alternative one-liner approach using LINQ Distinct()
-        public IReadOnlyList<INode> GetNeighbors(INode node) {
+        public IReadOnlyList<Node> GetNeighbors(Node node) {
             ValidateNodeExists(node);
             return edgesByNode[node]
                 .Select(edge => edge.Source.Equals(node) ? edge.Target : edge.Source)
@@ -194,20 +194,20 @@ namespace CommunicationNetwork.Graph {
                 .ToList()
                 .AsReadOnly();
         }
-        public override void AddNode(INode node) {
+        public override void AddNode(Node node) {
             base.AddNode(node);
-            edgesByNode[node] = new List<IEdge>(); // Initialize the edges list for the node
+            edgesByNode[node] = new List<Edge>(); // Initialize the edges list for the node
         }
-        public override void AddEdge(IEdge edge) {
+        public override void AddEdge(Edge edge) {
             base.AddEdge(edge);
             edgesByNode[edge.Source].Add(edge); // Add the edge to the source node's edges
             edgesByNode[edge.Target].Add(edge); // Add the edge to the target node's edges
         }
-        public override void RemoveNode(INode node) {
+        public override void RemoveNode(Node node) {
             ValidateNodeExists(node);
 
             // Create a copy to avoid modification during iteration
-            var edgesToRemove = new List<IEdge>(edgesByNode[node]);
+            var edgesToRemove = new List<Edge>(edgesByNode[node]);
 
             foreach (var edge in edgesToRemove) {
                 RemoveEdge(edge); // Use RemoveEdge method to handle cleanup properly
@@ -215,13 +215,13 @@ namespace CommunicationNetwork.Graph {
             edgesByNode.Remove(node);
             base.RemoveNode(node);
         }
-        public override void RemoveEdge(IEdge edge) {
+        public override void RemoveEdge(Edge edge) {
             ValidateEdgeExists(edge);
             base.RemoveEdge(edge);
             edgesByNode[edge.Source].Remove(edge); // Remove the edge from the source node's edges
             edgesByNode[edge.Target].Remove(edge); // Remove the edge from the target node's edges
         }
-        public override bool AreConnected(INode source, INode target) {
+        public override bool AreConnected(Node source, Node target) {
             if (source == null || target == null)
                 throw new ArgumentNullException("Source and target nodes cannot be null.");
 
@@ -233,7 +233,7 @@ namespace CommunicationNetwork.Graph {
                    );
         }
 
-        private void ValidateNodeExists(INode node) {
+        private void ValidateNodeExists(Node node) {
             if (node == null) {
                 throw new ArgumentNullException(nameof(node));
             } else if (!Nodes.Contains(node)) {
@@ -242,7 +242,7 @@ namespace CommunicationNetwork.Graph {
                 throw new ArgumentException("Inconsisent graph state. Uninitialize list of Edges", nameof(node));
             }
         }
-        private void ValidateEdgeExists(IEdge edge) {
+        private void ValidateEdgeExists(Edge edge) {
             if (edge == null) {
                 throw new ArgumentNullException(nameof(edge));
             } else if (!Edges.Contains(edge)) {
@@ -256,18 +256,18 @@ namespace CommunicationNetwork.Graph {
         /// ===Purpose=== : Provides access to methods for adding and removing nodes and edges,
         /// and query the existence of nodes and edges in the graph. 
         /// </summary>
-        void AddNode(INode node);
-        void AddEdge(IEdge edge);
-        void RemoveNode(INode node);
-        void RemoveEdge(IEdge edge);
-        bool AreConnected(INode source, INode target);
-        IReadOnlyList<INode> GetNeighbors(INode node);
-        bool HasNode(INode node);
-        bool HasEdge(IEdge edge);
-        IEdge GetEdge(INode source, INode target);
-        IReadOnlyList<INode> Nodes { get; }
-        IReadOnlyList<IEdge> Edges { get; }
-        string Name { get; set; }
+        void AddNode(Node node);
+        void AddEdge(Edge edge);
+        void RemoveNode(Node node);
+        void RemoveEdge(Edge edge);
+        bool AreConnected(Node source, Node target);
+        IReadOnlyList<Node> GetNeighbors(Node node);
+        bool HasNode(Node node);
+        bool HasEdge(Edge edge);
+        Edge GetEdge(Node source, Node target);
+        IReadOnlyList<Node> Nodes { get; }
+        IReadOnlyList<Edge> Edges { get; }
+        string ID { get; }
         Dictionary<object, object> MetaData { get; set; }
     }
 
@@ -278,64 +278,64 @@ namespace CommunicationNetwork.Graph {
     public abstract class BaseGraph : IGraph {
         protected IGraphStorage storage;
         private static int serialCounter = 0;
-        public string Name { get; set; }
+        public virtual string ID { get; set; }
         public Type ElementType { get; }
         public int Serial { get; init; }
         public Dictionary<object, object> MetaData { get; set; }
         public int NodeCount => storage.Nodes.Count;
         public int EdgeCount => storage.Edges.Count;
-        public IReadOnlyList<INode> Nodes => storage.Nodes;
-        public IReadOnlyList<IEdge> Edges => storage.Edges;
+        public IReadOnlyList<Node> Nodes => storage.Nodes;
+        public IReadOnlyList<Edge> Edges => storage.Edges;
 
         public bool IsEmpty => NodeCount == 0;
 
         public override string ToString() {
-            return $"{GetType().Name} '{Name}' [Nodes: {NodeCount}, Edges: {EdgeCount}]";
+            return $"{GetType().Name} '{ID}' [Nodes: {NodeCount}, Edges: {EdgeCount}]";
         }
 
         protected BaseGraph(IGraphStorage storage, string name = null) {
             this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
             Serial = Interlocked.Increment(ref serialCounter);
-            Name = name ?? $"{GetType().Name}_{Serial}";
+            ID = name ?? $"{GetType().Name}_{Serial}";
             MetaData = new Dictionary<object, object>();
             ElementType = typeof(BaseGraph);
         }
 
-        public void AddNode(INode node) {
+        public void AddNode(Node node) {
             storage.AddNode(node);
         }
 
-        public void AddEdge(IEdge edge) {
+        public void AddEdge(Edge edge) {
             storage.AddEdge(edge);
         }
 
-        public void RemoveNode(INode node) {
+        public void RemoveNode(Node node) {
             storage.RemoveNode(node);
         }
 
-        public void RemoveEdge(IEdge edge) {
+        public void RemoveEdge(Edge edge) {
             storage.RemoveEdge(edge);
         }
 
-        public virtual bool AreConnected(INode source, INode target) {
+        public virtual bool AreConnected(Node source, Node target) {
             return storage.AreConnected(source, target);
         }
 
-        public IEdge GetEdge(INode source, INode target) {
+        public Edge GetEdge(Node source, Node target) {
             if (source == null || target == null)
                 throw new ArgumentNullException("Source and target nodes cannot be null.");
             return storage.Edges.FirstOrDefault(edge => edge.Source.Equals(source) && edge.Target.Equals(target));
         }
 
-        public bool HasNode(INode node) {
+        public bool HasNode(Node node) {
             return storage.HasNode(node);
         }
 
-        public bool HasEdge(IEdge edge) {
+        public bool HasEdge(Edge edge) {
             return storage.HasEdge(edge);
         }
 
-        public abstract IReadOnlyList<INode> GetNeighbors(INode node);
+        public abstract IReadOnlyList<Node> GetNeighbors(Node node);
     }
 
     public abstract class BaseGraph<T> : BaseGraph, IGraph<T> {
@@ -349,15 +349,15 @@ namespace CommunicationNetwork.Graph {
     }
 
     public interface IDirectedGraph : IGraph {
-        IEnumerable<INode> GetPredecessors(INode node);
-        IEnumerable<INode> GetSuccessors(INode node);
-        IEnumerable<IEdge> GetOutgoingEdges(INode node);
-        IEnumerable<IEdge> GetIncomingEdges(INode node);
+        IEnumerable<Node> GetPredecessors(Node node);
+        IEnumerable<Node> GetSuccessors(Node node);
+        IEnumerable<Edge> GetOutgoingEdges(Node node);
+        IEnumerable<Edge> GetIncomingEdges(Node node);
     }
 
     public interface IUndirectedGraph : IGraph {
-        IReadOnlyList<INode> GetNeighbors(INode node);
-        IEnumerable<IEdge> GetEdges(INode node);
+        IReadOnlyList<Node> GetNeighbors(Node node);
+        IEnumerable<Edge> GetEdges(Node node);
     }
 
     public class UnDirectedGraph : BaseGraph, IUndirectedGraph {
@@ -367,14 +367,14 @@ namespace CommunicationNetwork.Graph {
             base(storage, name) {
             undirectedStorage = storage;
         }
-        public override IReadOnlyList<INode> GetNeighbors(INode node) {
+        public override IReadOnlyList<Node> GetNeighbors(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             // Use the IUndirectedGraphStorage interface to get neighbors
             return undirectedStorage.GetNeighbors(node);
         }
-        public IEnumerable<IEdge> GetEdges(INode node) {
+        public IEnumerable<Edge> GetEdges(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
@@ -383,7 +383,7 @@ namespace CommunicationNetwork.Graph {
         }
 
         // Override AreConnected for undirected behavior
-        public override bool AreConnected(INode source, INode target) {
+        public override bool AreConnected(Node source, Node target) {
             if (source == null || target == null)
                 throw new ArgumentNullException("Source and target nodes cannot be null.");
 
@@ -412,7 +412,7 @@ namespace CommunicationNetwork.Graph {
         }
 
         // Update your DirectedGraph.GetSuccessors method
-        public IEnumerable<INode> GetSuccessors(INode node) {
+        public IEnumerable<Node> GetSuccessors(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
@@ -424,7 +424,7 @@ namespace CommunicationNetwork.Graph {
         }
 
         // Similarly, fix GetPredecessors method
-        public IEnumerable<INode> GetPredecessors(INode node) {
+        public IEnumerable<Node> GetPredecessors(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
@@ -435,19 +435,19 @@ namespace CommunicationNetwork.Graph {
                 .Distinct(); // ← Also fix this one
         }
 
-        public IEnumerable<IEdge> GetOutgoingEdges(INode node) {
+        public IEnumerable<Edge> GetOutgoingEdges(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));
             return directedStorage.GetOutgoingEdges(node);
         }
 
-        public override IReadOnlyList<INode> GetNeighbors(INode node) {
-            List<INode> neighbors = GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
+        public override IReadOnlyList<Node> GetNeighbors(Node node) {
+            List<Node> neighbors = GetSuccessors(node).ToList(); // For directed graphs, neighbors are successors
             return neighbors;
         }
 
-        public IEnumerable<IEdge> GetIncomingEdges(INode node) {
+        public IEnumerable<Edge> GetIncomingEdges(Node node) {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (!storage.HasNode(node))
                 throw new ArgumentException("Node does not exist in the graph.", nameof(node));

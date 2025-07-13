@@ -20,13 +20,13 @@ namespace CommunicationNetwork.Nodes
 
 		public void BroadcastSignal()
 		{
-			Console.WriteLine($"{Name} is broadcasting the signal.");
+			Console.WriteLine($"{ID} is broadcasting the signal.");
 			// Logic for amplifying the signal
 		}
 
 		public void AmplifySignal()
 		{
-			Console.WriteLine($"{Name} is amplifying the signal.");
+			Console.WriteLine($"{ID} is amplifying the signal.");
 			// Logic for regenerating the signal
 		}
 	}
