@@ -10,11 +10,11 @@ namespace CommunicationNetwork {
     internal class Program {
         static void Main(string[] args) {
             UnDirectedGraph graph = new UnDirectedGraph(new UndirectedAdjacencyListStorage(), "ug");
-            Node tns = new TerminalNode(TerminalNode.TerminalType.Sender);
+            Node tns = new CommandCenter();
             Node hn = new HackerNode();
             Node vn = new VulnerableNode();
             Node fn = new FirewallNode(packet => (packet.Payload.Length >= 10 && packet.Payload.Length <=30));
-            Node tnr = new TerminalNode(TerminalNode.TerminalType.Receiver);
+            Node tnr = new CommandCenter();
             Edge edge1 = new Edge(tns, vn);
             Edge edge2 = new Edge(vn, fn);
             Edge edge3 = new Edge(fn, hn);
@@ -40,17 +40,7 @@ namespace CommunicationNetwork {
             directedGraph.AddEdge(edge2);
             directedGraph.AddEdge(edge3);
             directedGraph.AddEdge(edge4);
-             
-
-            // Run DFS on directed graph
-            DFS dfsDirected = new DFS("dfs");
-            dfsDirected.SetGraph(directedGraph);
-            dfsDirected.Execute();
-
-            BFS bfsDirected = new BFS("bfs");
-            bfsDirected.SetGraph(directedGraph);
-            bfsDirected.SetSource(tns);
-            bfsDirected.Execute();
+            
 
             BellmanFord bellmanFordDirected = new BellmanFord("bf1");
             bellmanFordDirected.SetWeight(edge1, 1);
@@ -60,11 +50,6 @@ namespace CommunicationNetwork {
             bellmanFordDirected.SetStart(tns);
             bellmanFordDirected.SetGraph(directedGraph);
             bellmanFordDirected.Execute();
-
-            TopologicalSort topologicalSort = new TopologicalSort("ts1");
-            topologicalSort.SetGraph(directedGraph);
-            topologicalSort.SetDFS(dfsDirected);
-            topologicalSort.Execute();
 
             // Traverse path with packet
             Packet packet = new Packet("Hello World");

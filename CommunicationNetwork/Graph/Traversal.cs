@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunicationNetwork.Nodes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,15 +17,18 @@ namespace CommunicationNetwork.Graph
 				return;
 			}
 			Console.WriteLine("Starting traversal with packet: " + packet.Payload);
-			foreach (Node node in path)
+			for (int i = 0; i < path.Count - 1; i++)
 			{
-				node.Trasmit(packet);
+				Node? node = path[i] as Node;
+				node?.Trasmit(packet);
 				if (packet.IsDropped)
 				{
 					Console.WriteLine("Packet was dropped during traversal. Stopping...");
 					return;
 				}
 			}
+			TerminalNode? lastNode = path.Last() as TerminalNode;
+			lastNode?.Receive(packet);
 			Console.WriteLine("Traversal completed successfully.");
 		}
 	}
