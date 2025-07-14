@@ -112,7 +112,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
 
 
-        private GraphvizEdge CreateNewGraphvicEdgeToAST(Edge edge) {
+        private GraphvizEdge CreateNewGraphvicEdgeToAST(IEdge edge) {
             int source = edge.Source.Serial;
             int target = edge.Target.Serial;
             // Create a new GraphvizEdge for each edge in the graph and add it to the AST
@@ -121,7 +121,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             return newGraphvicEdge;
         }
 
-        private void AugmentNodeLabelPropertyWithMetadata(Node node, GraphvizProperty labelProperty) {
+        private void AugmentNodeLabelPropertyWithMetadata(INode node, GraphvizProperty labelProperty) {
             // A2. Add property values to the label property
             foreach (var key in _nodeMetadataKeys) {
                 GraphvizPropertyValue newValue =
@@ -130,7 +130,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             }
         }
 
-        private void AugmentEdgeLabelPropertyWithMetadata(Edge edge, GraphvizProperty labelProperty) {
+        private void AugmentEdgeLabelPropertyWithMetadata(IEdge edge, GraphvizProperty labelProperty) {
             // A2. Add property values to the label property
             foreach (var key in _edgeMetadataKeys) {
                 GraphvizPropertyValue newValue =
@@ -157,7 +157,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             return newProperties;
         }
         
-        private GraphvizNode CreateNewGraphvizNodeToAST(Node node) {
+        private GraphvizNode CreateNewGraphvizNodeToAST(INode node) {
             // Create a new GraphvizNode for the given node 
             GraphvizNode newGraphvizNode = new GraphvizNode(node.Serial.ToString());
             // Add the new GraphvizNode to the AST

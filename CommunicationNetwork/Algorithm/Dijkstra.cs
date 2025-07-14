@@ -9,10 +9,7 @@ namespace CommunicationNetwork.Algorithm {
     public class Dijkstra : BaseAlgorithm {
 
         IGraph _graph;
-        public object MetadataKey { get; init; }
-
-        public Dijkstra(string name) : base() {
-        }
+        public static string MetadataKey => "Dijkstra";
 
         public override void Execute() {
             throw new NotImplementedException();

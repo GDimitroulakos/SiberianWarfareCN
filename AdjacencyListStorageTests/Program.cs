@@ -658,7 +658,7 @@ namespace CommunicationNetwork.Graph.Tests {
             Assert.IsTrue(nodes.Contains(node1));
 
             // Verify it's read-only by attempting to cast
-            Assert.IsInstanceOfType(nodes, typeof(System.Collections.ObjectModel.ReadOnlyCollection<Node>));
+            Assert.IsInstanceOfType(nodes, typeof(System.Collections.ObjectModel.ReadOnlyCollection<INode>));
         }
 
         [TestMethod]
@@ -678,7 +678,7 @@ namespace CommunicationNetwork.Graph.Tests {
             Assert.IsTrue(edges.Contains(edge));
 
             // Verify it's read-only by attempting to cast
-            Assert.IsInstanceOfType(edges, typeof(System.Collections.ObjectModel.ReadOnlyCollection<Edge>));
+            Assert.IsInstanceOfType(edges, typeof(System.Collections.ObjectModel.ReadOnlyCollection<IEdge>));
         }
 
         [TestMethod]

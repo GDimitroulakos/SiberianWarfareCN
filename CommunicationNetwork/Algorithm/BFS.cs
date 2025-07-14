@@ -6,72 +6,75 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Algorithm {
-    public class BFS : BaseAlgorithm, IDataProvider {
-        protected Dictionary<string, object> _outputDataLinks = new Dictionary<string, object>();
+    public class BFS :BaseAlgorithm{
 
-        // Input data Metadata keys
-        // None
+        // 2. Metadata structure for BFS results
+        public class BFS_NodeMetaData {
+            public string Color;      // WHITE, GRAY, BLACK
+            public int Distance;      // Distance from source
+            public INode Parent;      // Parent in BFS tree
 
+            public override string ToString() {
+                string parentName = Parent?.Name ?? "null";
+                return $"BFS Results\nColor={Color}\nDistance={Distance}\nParent={parentName}";
+            }
+        }
 
-        // Output data Metadata keys
-        readonly string K_COLOR = "COLOR";
-        readonly string K_DISTANCE = "DISTANCE";
-        readonly string K_PARENT = "PARENT";
-        readonly string K_PATHS = "PATHS";
+        public class BFS_GraphMetaData {
+            // Dictionary to store paths from source to each node. The key is the targer node,
+            // and the value is the list of nodes in the path.
+            public Dictionary<INode, List<INode>> Paths;
+            public INode Source; // The source node from which BFS was initiated
+
+            public override string ToString() {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("BFS Graph MetaData:");
+                sb.AppendLine($"Source: {Source?.Name}");
+                sb.AppendLine("Paths:");
+                foreach (var kvp in Paths) {
+                    sb.AppendLine($"{kvp.Key.Name}: {string.Join(" -> ", kvp.Value.Select(n => n.Name))}");
+                }
+                return sb.ToString();
+            }
+        }
 
         // 3. Algorithm state
         private IGraph _graph;
-        private Node _start = null;
-        private Queue<Node> queue;
+        private INode _start=null;
+        private Queue<INode> queue;
 
-        public BFS(string name) : base() {
-            // Initialize the output data links
-            _outputDataLinks["COLOR"] = K_COLOR;
-            _outputDataLinks["DISTANCE"] = K_DISTANCE;
-            _outputDataLinks["PARENT"] = K_PARENT;
-            _outputDataLinks["PATHS"] = K_PATHS;
-        }
-
-        public object GetDatakey(string key) {
-            if (_outputDataLinks.TryGetValue(key, out var value)) {
-                return value;
-            }
-            throw new KeyNotFoundException($"Key '{key}' not found in output data links.");
+        public BFS(string name) {
+            this.Name = name;
+            MetadataKey = name;
         }
 
         // 4. Accessor methods
-        public string Color(Node node) {
-            if (node.MetaData.TryGetValue(K_COLOR, out var color)) {
-                return color as string;
-            }
-            throw new InvalidOperationException($"Color metadata not found for node {node.ID}.");
+        public string Color(INode node) {
+            return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Color;
         }
 
-        public int Distance(Node node) {
-            if (node.MetaData.TryGetValue(K_DISTANCE, out var distance)) {
-                return (int)distance;
-            }
-            throw new InvalidOperationException($"Distance metadata not found for node {node.ID}.");
+        public int Distance(INode node) {
+            return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Distance;
         }
 
-        public Node Parent(Node node) {
-            if (node.MetaData.TryGetValue(K_PARENT, out var parent)) {
-                return parent as Node;
-            }
-            throw new InvalidOperationException($"Parent metadata not found for node {node.ID}.");
+        public INode Parent(INode node) {
+            return ((BFS_NodeMetaData)node.MetaData[MetadataKey]).Parent;
         }
 
         // 5. Setter methods
-        private void SetColor(Node node, string color) {
-            node.MetaData[K_COLOR] = color;
+        private void SetColor(INode node, string color) {
+            var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Color = color;
         }
 
-        private void SetDistance(Node node, int distance) {
-            node.MetaData[K_DISTANCE] = distance;
+        private void SetDistance(INode node, int distance) {
+            var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Distance = distance;
         }
 
-        private void SetParent(Node node, Node parent) {
-            node.MetaData[K_PARENT] = parent;
+        private void SetParent(INode node, INode parent) {
+            var metaData = (BFS_NodeMetaData)node.MetaData[MetadataKey];
+            metaData.Parent = parent;
         }
 
         // 6. Graph initialization setters
@@ -79,50 +82,62 @@ namespace CommunicationNetwork.Algorithm {
             _graph = graph;
         }
 
-        public void SetSource(Node start) {
+        public void SetSource(INode start) {
             _start = start;
-        }
-
-        public void AddPath(Node source, List<Node> path) {
-            (_graph.MetaData[K_PATHS] as Dictionary<Node,List<Node>>)[source] = path;
         }
 
         // 7. Required overrides
         public override void Initialize() {
+            // Check if the graph and source node are set
+            if (_graph == null) {
+                throw new InvalidOperationException("Graph is not set. Use SetGraph method to set the graph.");
+            }
+
+            if (_start == null) {
+                throw new InvalidOperationException("Source node is not set. Use SetSource method to set the source node.");
+            }
+
             // Initialize the queue
             if (queue == null) {
-                queue = new Queue<Node>();
+                queue = new Queue<INode>();
             } else {
                 queue.Clear();
             }
 
-            foreach (Node node in _graph.Nodes) {
+            // Initialize metadata for the graph and nodes
+            _graph.MetaData[MetadataKey] = new BFS_GraphMetaData() {
+                Paths = new Dictionary<INode, List<INode>>(),
+                Source = _start
+            };
+
+            foreach (INode node in _graph.Nodes) {
                 if (node != _start) {
-                    // Initialize metadata for each node
-                    SetColor(node, "WHITE");
-                    SetDistance(node, -1);
-                    SetParent(node, null);
+                    node.MetaData[MetadataKey] = new BFS_NodeMetaData() {
+                        Color = "WHITE",
+                        Distance = int.MaxValue, // Infinity
+                        Parent = null
+                    };
                 } else {
-                    // Initialize the source node
-                    SetColor(node, "GRAY");
-                    SetDistance(node, 0);
-                    SetParent(node, null);
+                    node.MetaData[MetadataKey] = new BFS_NodeMetaData() {
+                        Color = "GRAY", // Start node is initially gray
+                        Distance = 0,   // Distance from itself is 0
+                        Parent = null   // No parent for the start node
+                    };
+                    queue.Enqueue(_start);
                 }
             }
-            _graph.MetaData[K_PATHS] = new Dictionary<Node, List<Node>>();
-            queue.Enqueue(_start);
         }
 
         public override void Execute() {
             Initialize();
 
             // Current node in the BFS traversal
-            Node current = null;
+            INode current = null;
 
             while (queue.Count != 0) {
                 // Dequeue the next node
                 current = queue.Dequeue();
-                foreach (Node neighbor in _graph.GetNeighbors(current)) {
+                foreach (INode neighbor in _graph.GetNeighbors(current)) {
                     if (Color(neighbor) == "WHITE") {
                         SetColor(neighbor, "GRAY");
                         SetDistance(neighbor, Distance(current) + 1);
@@ -139,20 +154,22 @@ namespace CommunicationNetwork.Algorithm {
         }
 
         private void AssemblePaths() {
-            foreach (Node node in _graph.Nodes) {
-                if (node != _start) {
-                    // Reconstruct the path from source to this node
-                    List<Node> path = new List<Node>();
-                    Node currentNode = node;
-                    while (currentNode != null) {
-                        path.Add(currentNode);
-                        currentNode = Parent(currentNode);
+            BFS_GraphMetaData graphMetaData = (BFS_GraphMetaData)_graph.MetaData[MetadataKey];
+            if (graphMetaData != null) {
+                foreach (INode node in _graph.Nodes) {
+                    if (node != _start) {
+                        // Reconstruct the path from source to this node
+                        List<INode> path = new List<INode>();
+                        INode currentNode = node;
+                        while (currentNode != null) {
+                            path.Add(currentNode);
+                            currentNode = Parent(currentNode);
+                        }
+                        path.Reverse(); // Reverse to get the path from source to node
+                        graphMetaData.Paths[node] = path;
                     }
-                    path.Reverse(); // Reverse to get the path from source to node
-                    AddPath(node, path);
                 }
             }
-
         }
         // 8. Algorithm-specific methods
 

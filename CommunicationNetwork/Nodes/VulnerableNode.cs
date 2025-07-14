@@ -8,7 +8,7 @@ using System.Net.Security;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class VulnerableNode : SWCommunicationNode
+	public class VulnerableNode : Node
 	{
 		private double _plaintextProbability = 0.3;
 		private Random _rng = new Random();
@@ -40,16 +40,16 @@ namespace CommunicationNetwork.Nodes
 		public override void Trasmit(Packet packet)
 		{
 			Console.WriteLine("Reached Vulnerable Node:");
-			Console.WriteLine($"\t{ID} received packet with payload '{packet.Payload}'.");
+			Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
 			// Confidentiality attack: log plaintext with some probability
 			if (_rng.NextDouble() < _plaintextProbability)
 			{
-				Console.WriteLine($"\t{ID} logged plaintext data: {packet.Payload}");
+				Console.WriteLine($"\t{Name} logged plaintext data: {packet.Payload}");
 			}
 			else
 			{
 				var encryptedPayload = EncryptPayload(packet.Payload);
-				Console.WriteLine($"\t{ID} encrypted payload: {encryptedPayload}");
+				Console.WriteLine($"\t{Name} encrypted payload: {encryptedPayload}");
 				packet.Payload = encryptedPayload; // Update packet with encrypted payload
 			}
 			Console.WriteLine();
