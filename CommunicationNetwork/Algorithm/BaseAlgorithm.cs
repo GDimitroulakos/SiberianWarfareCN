@@ -22,6 +22,4 @@ namespace CommunicationNetwork.Algorithm {
         public abstract void Initialize();
 
     }
-
-    
 }
