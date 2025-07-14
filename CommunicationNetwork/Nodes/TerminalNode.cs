@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunicationNetwork.Graph;
+using System.Security.Cryptography;
 
 namespace CommunicationNetwork.Nodes
 {
@@ -12,35 +13,43 @@ namespace CommunicationNetwork.Nodes
 	/// Terminal nodes either pull or push orders and are typically the endpoints of a communication path.
 	/// </summary>
 	public class TerminalNode : Node
-	{
-		private enum NodeType
-		{
-			Troop,
-			Vehicle,
-			Building,
-			Aircraft,
-			Ship,
-			Station,
-			Drone
-		};
+	{ 
+		public enum TerminalType { Sender, Receiver }
+		private TerminalType _type;
 
-		private NodeType nodeType;
-
-		public TerminalNode() : base()
+		public TerminalNode(TerminalType type)
 		{
-			nodeType = NodeType.Troop; // Default type, can be changed as needed
+			_type = type;
 		}
 
-		public void PullOrder()
+		public override void Trasmit(Packet packet)
 		{
-			// Logic for pulling an order
-			Console.WriteLine($"{ID} is pulling an order.");
-		}
+			Console.WriteLine($"Reached Terminal {_type} Node:");
+			if (_type == TerminalType.Sender)
+			{
+				Console.WriteLine($"\t{Name} is sending packet '{packet.Payload}' to network.");
 
-		public void PushOrder()
-		{
-			// Logic for pushing an order
-			Console.WriteLine($"{ID} is pushing an order.");
+			}
+			else if (_type == TerminalType.Receiver)
+			{
+				Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
+				string oldSignature = packet.Signature;
+				string newSignature = Packet.HashSHA256(packet.Payload);
+
+				if (oldSignature != newSignature)
+				{
+					Console.WriteLine($"\t The original packet has been hacked");
+					Console.WriteLine($"\t The original signature was: " + oldSignature);
+					Console.WriteLine($"\t The new signature is: " + newSignature);
+				}
+				else
+				{
+					Console.WriteLine($"\t The packet is intact and has not been altered.");
+					Console.WriteLine($"\t The packet payload is: {packet.Payload}");
+				}
+				
+			}
+			Console.WriteLine();
 		}
 	}
 }

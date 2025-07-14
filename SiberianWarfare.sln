@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommunicationNetwork", "CommunicationNetwork\CommunicationNetwork.csproj", "{E5D7E1E5-5311-42F3-92E1-AFC084A09CF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdjacencyListStorageTests", "AdjacencyListStorageTests\AdjacencyListStorageTests.csproj", "{74CF3FB7-9A30-40B9-B9E1-E27902775CDB}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{E5D7E1E5-5311-42F3-92E1-AFC084A09CF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5D7E1E5-5311-42F3-92E1-AFC084A09CF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5D7E1E5-5311-42F3-92E1-AFC084A09CF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{74CF3FB7-9A30-40B9-B9E1-E27902775CDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74CF3FB7-9A30-40B9-B9E1-E27902775CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{74CF3FB7-9A30-40B9-B9E1-E27902775CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{74CF3FB7-9A30-40B9-B9E1-E27902775CDB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
