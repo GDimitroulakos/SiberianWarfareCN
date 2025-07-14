@@ -1,4 +1,5 @@
 ﻿using CommunicationNetwork.Algorithm;
+using CommunicationNetwork.Algorithm.TestingAlgorithms;
 using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
 using CommunicationNetwork.Graph.GraphvizPrinter;
@@ -57,7 +58,16 @@ namespace CommunicationNetwork {
             bfsDirected.SetSource(node1);
             bfsDirected.Execute();
 
-            
+            CreateSampleWeightsAlgorithm SW = new CreateSampleWeightsAlgorithm();
+            SW.SetGraph(graph);
+            SW.Execute();
+
+            BellmanFord bellmanFord = new BellmanFord();
+            bellmanFord.SetGraph(graph);
+            bellmanFord.SetStart(node1);
+            bellmanFord.RegisterInput("WEIGHT",SW,SW.K_WEIGHT);
+            bellmanFord.Execute();
+
 
 
             /*

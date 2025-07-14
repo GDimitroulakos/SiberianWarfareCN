@@ -17,16 +17,16 @@ namespace CommunicationNetwork.Algorithm {
         readonly string K_PATHS = "PATHS";
         readonly string K_DISTANCE = "DISTANCE";
 
-        public BellmanFord(string name):base() {
+        public BellmanFord():base() {
             // Initialize the output data links
             _outputDataLinks["DISTANCE"] = K_DISTANCE;
             _outputDataLinks["PARENT"] = K_PARENT;
             _outputDataLinks["PATHS"] = K_PATHS;
         }
         
-        public int Distance(Node node) {
+        public double Distance(Node node) {
             if (node.MetaData.TryGetValue(K_DISTANCE, out var distance)) {
-                return (int)distance;
+                return (double)distance;
             }
             throw new InvalidOperationException($"Distance metadata not found for node {node.ID}.");
         }

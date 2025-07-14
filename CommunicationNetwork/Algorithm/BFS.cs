@@ -89,6 +89,13 @@ namespace CommunicationNetwork.Algorithm {
 
         // 7. Required overrides
         public override void Initialize() {
+            // Initialize the queue
+            if (queue == null) {
+                queue = new Queue<Node>();
+            } else {
+                queue.Clear();
+            }
+
             foreach (Node node in _graph.Nodes) {
                 if (node != _start) {
                     // Initialize metadata for each node

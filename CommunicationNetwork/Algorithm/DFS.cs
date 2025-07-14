@@ -14,6 +14,13 @@ namespace CommunicationNetwork.Algorithms {
         IGraph _graph;
         int time = 0;
 
+        public IGraph Graph() {
+            return _graph;
+        }
+        public void SetGraph(IGraph graph) {
+            _graph = graph;
+        }
+
         // Input data Metadata keys
         // None
 
@@ -57,14 +64,6 @@ namespace CommunicationNetwork.Algorithms {
                 return (int)time;
             }
             throw new InvalidOperationException($"TimeFinished metadata not found for node {node.ID}.");
-        }
-
-
-        public IGraph Graph() {
-            return _graph;
-        }
-        public void SetGraph(IGraph graph) {
-            _graph = graph;
         }
         
         public object GetDatakey(string key) {
