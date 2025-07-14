@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class FirewallNode : Node
+	public class FirewallNode : SWCommunicationNode
 	{
 		private Func<Packet, bool> _filter;
 
@@ -15,19 +15,19 @@ namespace CommunicationNetwork.Nodes
 		{
 			_filter = filter ?? (_ => true);
 		}
-
-		public override void Trasmit(Packet packet)
+        
+        public override void Trasmit(Packet packet)
 		{
 			Console.WriteLine("Reached Firewall Node: ");
-			Console.WriteLine($"\t{Name} inspecting packet with payload '{packet.Payload}'.");
+			Console.WriteLine($"\t{ID} inspecting packet with payload '{packet.Payload}'.");
 			if (_filter(packet))
 			{
-				Console.WriteLine($"\t{Name} allowed the packet.");
+				Console.WriteLine($"\t{ID} allowed the packet.");
 
 			}
 			else
 			{
-				Console.WriteLine($"\t{Name} dropped the packet.");
+				Console.WriteLine($"\t{ID} dropped the packet.");
 				packet.IsDropped = true;
 				return;
 			}

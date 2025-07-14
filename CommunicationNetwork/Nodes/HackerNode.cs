@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace CommunicationNetwork.Nodes
 {
-	public class HackerNode : Node
+	public class HackerNode : SWCommunicationNode
 	{
 		private double _modifyProbability;
 		private double _dropProbability;
@@ -47,12 +47,12 @@ namespace CommunicationNetwork.Nodes
 		public override void Trasmit(Packet packet)
 		{
 			Console.WriteLine("Reached Hacker Node:");
-			Console.WriteLine($"\t{Name} intercepted packet: {packet.Payload}");
+			Console.WriteLine($"\t{ID} intercepted packet: {packet.Payload}");
 
 			// Decide whether to drop
 			if (_rng.NextDouble() < _dropProbability)
 			{
-				Console.WriteLine($"\t{Name} dropped the packet.");
+				Console.WriteLine($"\t{ID} dropped the packet.");
 				packet.IsDropped = true;
 				return;
 			}
@@ -62,7 +62,7 @@ namespace CommunicationNetwork.Nodes
 			{
 				var original = packet.Payload;
 				packet.Payload = $"{packet.Payload}-[HACKED]";
-				Console.WriteLine($"\t{Name} modified payload from '{original}' to '{packet.Payload}'.");
+				Console.WriteLine($"\t{ID} modified payload from '{original}' to '{packet.Payload}'.");
 			}
 
 			Console.WriteLine();

@@ -1,14 +1,15 @@
-﻿using System;
+﻿using CommunicationNetwork.Graph;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CommunicationNetwork.Graph
+namespace CommunicationNetwork.Nodes
 {
 	public class Traversal
 	{
-		public static void Traverse(Packet packet, List<INode> path)
+		public static void Traverse(Packet packet, List<SWCommunicationNode> path)
 		{
 			if (path == null || path.Count == 0)
 			{
@@ -16,7 +17,7 @@ namespace CommunicationNetwork.Graph
 				return;
 			}
 			Console.WriteLine("Starting traversal with packet: " + packet.Payload);
-			foreach (Node node in path)
+			foreach (SWCommunicationNode node in path)
 			{
 				node.Trasmit(packet);
 				if (packet.IsDropped)
