@@ -60,6 +60,7 @@ namespace CommunicationNetwork {
             
 
 
+            /*
             BellmanFord bellmanFordDirected = new BellmanFord("bf1");
             bellmanFordDirected.SetWeight(edge1, 2);
             bellmanFordDirected.SetWeight(edge2, 3);
@@ -94,6 +95,7 @@ namespace CommunicationNetwork {
 
             GraphvizASTPrinter graphvizASTPrinter = new GraphvizASTPrinter();
             graphvizASTPrinter.GenerateDot(graphToDOTGeneration.DotFileAst, "AST.dot");
+            */
 
 
 

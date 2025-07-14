@@ -11,7 +11,7 @@ namespace CommunicationNetwork.Algorithm {
         IGraph _graph;
         public object MetadataKey { get; init; }
 
-        public Dijkstra(string name) : base(name) {
+        public Dijkstra(string name) : base() {
         }
 
         public override void Execute() {

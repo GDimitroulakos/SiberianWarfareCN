@@ -1,80 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommunicationNetwork.Graph;
 
 namespace CommunicationNetwork.Algorithm {
-    public class BellmanFord : BaseAlgorithm {
-        public BellmanFord(string name):base() {
-        }
+    public class BellmanFord : BaseAlgorithm, IDataProvider,IDataConsumer {
+        protected Dictionary<string, object> _outputDataLinks = new Dictionary<string, object>();
+        // Input data Metadata keys
+        private string K_WEIGHT;
 
-        public class BellmanFord_NodeMetadata {
-            public double Distance;
-            public Node Parent;
-            public BellmanFord_NodeMetadata(double distance, Node parent) {
-                Distance = distance;
-                Parent = parent;
-            }
-            public override string ToString() {
-                string parentName = Parent?.ID ?? "null";
-                return $"Bellman-Ford Results\nDistance={Distance}\nParent={parentName}";
-            }
+        // Output data Metadata keys
+        readonly string K_PARENT = "PARENT";
+        readonly string K_PATHS = "PATHS";
+        readonly string K_DISTANCE = "DISTANCE";
+
+        public BellmanFord(string name):base() {
+            // Initialize the output data links
+            _outputDataLinks["DISTANCE"] = K_DISTANCE;
+            _outputDataLinks["PARENT"] = K_PARENT;
+            _outputDataLinks["PATHS"] = K_PATHS;
         }
         
-
-        public double Distance(Node node) {
-            return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Distance;
+        public int Distance(Node node) {
+            if (node.MetaData.TryGetValue(K_DISTANCE, out var distance)) {
+                return (int)distance;
+            }
+            throw new InvalidOperationException($"Distance metadata not found for node {node.ID}.");
         }
         public void SetDistance(Node node, double distance) {
-            var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
-            metaData.Distance = distance;
+            node.MetaData[K_DISTANCE] = distance;
         }
+
         public Node Parent(Node node) {
-            return ((BellmanFord_NodeMetadata)node.MetaData[MetadataKey]).Parent;
-        }
-        public  void SetParent(Node node, Node parent) {
-            var metaData = (BellmanFord_NodeMetadata)node.MetaData[MetadataKey];
-            metaData.Parent = parent;
-        }
-
-        public class BellmanFord_EdgeMetadata {
-            public double _weight;
-            public BellmanFord_EdgeMetadata(double weight) {
-                _weight = weight;
+            if (node.MetaData.TryGetValue(K_PARENT, out var parent)) {
+                return parent as Node;
             }
-
-            public override string ToString() {
-                return $"Weight: {_weight}";
-            }
+            throw new InvalidOperationException($"Parent metadata not found for node {node.ID}.");
+        }
+        public void SetParent(Node node, Node parent) {
+            node.MetaData[K_PARENT] = parent;
         }
 
         public double Weight(Edge edge) {
-            return ((BellmanFord_EdgeMetadata)edge.MetaData[MetadataKey])._weight;
+            if (edge.MetaData.TryGetValue(K_WEIGHT, out var weight)) {
+                return (double)weight;
+            }
+            throw new InvalidOperationException($"Weight metadata not found for edge {edge.ID}.");
         }
 
-        public void SetWeight(Edge edge, double weight) {
-            if (!edge.MetaData.ContainsKey(MetadataKey)) {
-                edge.MetaData[MetadataKey] = new BellmanFord_EdgeMetadata(weight);
-            } else {
-                ((BellmanFord_EdgeMetadata)edge.MetaData[MetadataKey])._weight = weight;
-            }
-        }
-
-        public class BellmanFord_GraphMetadata {
-            public Dictionary<Node, List<Node>> _paths;
-            public BellmanFord_GraphMetadata() {
-                _paths = new Dictionary<Node, List<Node>>();
-            }
-            public override string ToString() {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("Bellman-Ford Graph MetaData:");
-                foreach (var kvp in _paths) {
-                    sb.AppendLine($"{kvp.Key.ID}: {string.Join(" -> ", kvp.Value.Select(n => n.ID))}");
-                }
-                return sb.ToString();
-            }
+        // no setter for weight as it is given by the graph creator
+        
+        public void AddPath(Node source, List<Node> path) {
+            (_graph.MetaData[K_PATHS] as Dictionary<Node, List<Node>>)[source] = path;
         }
 
         private IGraph _graph;
@@ -87,21 +67,33 @@ namespace CommunicationNetwork.Algorithm {
             _start = start;
         }
 
+        public object GetDatakey(string key) {
+            if (_outputDataLinks.TryGetValue(key, out var value)) {
+                return value;
+            }
+            throw new KeyNotFoundException($"Key '{key}' not found in output data links.");
+        }
+
+        public void RegisterInput(string PublicConsumerKey,
+            IDataProvider provider, string PublicProviderkey) {
+            if (PublicConsumerKey == "WEIGHT") {
+                K_WEIGHT = provider.GetDatakey(PublicProviderkey) as string;
+            }
+        }
+
         public override void Initialize() {
             // Initialize graph metadata
-            if (!_graph.MetaData.ContainsKey(MetadataKey)) {
-                _graph.MetaData[MetadataKey] = new BellmanFord_GraphMetadata();
+            _graph.MetaData[K_PATHS] = new Dictionary<Node, List<Node>>();
 
-            }
-
-            // Initialize node metadata
-            foreach (var node in _graph.Nodes) {
-                if (!node.MetaData.ContainsKey(MetadataKey)) {
-                    if (node == _start) {
-                        node.MetaData[MetadataKey] = new BellmanFord_NodeMetadata(0, null);
-                    } else {
-                        node.MetaData[MetadataKey] = new BellmanFord_NodeMetadata(double.MaxValue, null);
-                    }
+            foreach (Node node in _graph.Nodes) {
+                if (node != _start) {
+                    // Initialize metadata for each node
+                    SetDistance(node, double.MaxValue);
+                    SetParent(node, null);
+                } else {
+                    // Initialize the source node
+                    SetDistance(node, 0);
+                    SetParent(node, null);
                 }
             }
         }
@@ -127,22 +119,20 @@ namespace CommunicationNetwork.Algorithm {
         }
 
         private void AssemblePathData() {
-            var graphMetaData = (BellmanFord_GraphMetadata)_graph.MetaData[MetadataKey];
+            var graphMetaData = _graph.MetaData[K_PATHS] as Dictionary<Node, List<Node>>;
             foreach (var node in _graph.Nodes) {
-                if (!graphMetaData._paths.ContainsKey(node)) {
-                    graphMetaData._paths[node] = new List<Node>();
+                if (!graphMetaData.ContainsKey(node)) {
+                    graphMetaData[node] = new List<Node>();
                 }
                 Node current = node;
                 while (current != null) {
-                    graphMetaData._paths[node].Add(current);
+                    graphMetaData[node].Add(current);
                     current = Parent(current);
                 }
-                graphMetaData._paths[node].Reverse(); // Reverse to get the path from start to node
+                graphMetaData[node].Reverse(); // Reverse to get the path from start to node
             }
         }
-
-
-
+        
 
         public void Relax(Node u, Node v) {
             Edge edge = _graph.GetEdge(u, v);

@@ -12,7 +12,8 @@ namespace CommunicationNetwork.Algorithm {
     }
 
     public interface IDataConsumer {
-        void RegisterInput(IDataProvider provider, string key);
+        void RegisterInput(string PublicConsumerKey,
+            IDataProvider provider, string PublicProviderkey);
     }
 
     public abstract class BaseAlgorithm {
