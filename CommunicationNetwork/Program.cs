@@ -62,27 +62,36 @@ namespace CommunicationNetwork {
             SW.SetGraph(graph);
             SW.Execute();
 
+            // Create Bellman-Ford algorithm instance
             BellmanFord bellmanFord = new BellmanFord();
+            // Set the input graph for the Bellman-Ford algorithm assuming that 
+            // the weights have been set by the CreateSampleWeightsAlgorithm
             bellmanFord.SetGraph(graph);
+            // Set the start node for the Bellman-Ford algorithm
             bellmanFord.SetStart(node1);
+            // Set the key to access the weights in the graph given by the CreateSampleWeightsAlgorithm
+            // The weight are also assumed to be set in the edges by the CreateSampleWeightsAlgorithm.
+            // Bellman-Ford algorithm requires the weights to be set in the edges. It is the programmer's
+            // responsibility to ensure that the weights are set before executing the algorithm and given
+            // through the input graph.
+            // However, there is a problem when we have two instances of the CreateSampleWeightsAlgorithm.
+            // Here we may have the problem
+            // 1. We sent a different graph from the one manipulated by the CreateSampleWeightsAlgorithm
+            // NO problem the key is unique for the algorithm instance so the algorithm cannot access false data.
+            // However, the algorithm can access absent data so **A CHECK MUST BE MADE** to ensure that the
+            // weights are set in the edges of the graph.
+            // 2. If the algorithm takes multiple graphs how can we ensure that the proper graph is used?
+            // We must have a way to link the input graph with the key to access the weights in the edges
+            // together.
             bellmanFord.RegisterInput("WEIGHT",SW,SW.K_WEIGHT);
+            // Execute the Bellman-Ford algorithm
             bellmanFord.Execute();
 
 
 
-            /*
-            BellmanFord bellmanFordDirected = new BellmanFord("bf1");
-            bellmanFordDirected.SetWeight(edge1, 2);
-            bellmanFordDirected.SetWeight(edge2, 3);
-            bellmanFordDirected.SetWeight(edge3, 1);
-            bellmanFordDirected.SetWeight(edge4, 4);
-            bellmanFordDirected.SetWeight(edge5, 2);
-            bellmanFordDirected.SetWeight(edge6, 5);
-            bellmanFordDirected.SetStart(node1);
-            bellmanFordDirected.SetGraph(directedGraph);
-            bellmanFordDirected.Execute();
 
-            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            /*
+                       TopologicalSort topologicalSort = new TopologicalSort("topo1");
             topologicalSort.SetGraph(directedGraph);
             topologicalSort.SetDFS(dfsDirected);
             topologicalSort.Execute();

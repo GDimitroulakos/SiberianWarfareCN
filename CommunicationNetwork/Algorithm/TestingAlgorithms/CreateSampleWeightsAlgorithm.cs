@@ -12,6 +12,7 @@ namespace CommunicationNetwork.Algorithm.TestingAlgorithms {
         
         // Input data Metadata keys
         // None
+        public readonly string K_INPUTGRAPH = "INPUTGRAPH";
 
         // Output data Metadata keys
         public readonly string K_WEIGHT = "WEIGHT";

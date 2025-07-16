@@ -24,6 +24,7 @@ namespace CommunicationNetwork.Graph {
             Target = target ?? throw new ArgumentNullException(nameof(target));
             ElementType = typeof(Edge);
         }
+        
     }
     
 }
