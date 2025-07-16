@@ -18,6 +18,8 @@ namespace CommunicationNetwork
 		public string Payload { get; set; }
 		public string Signature { get; }
 		public bool IsDropped { get; set; } = false;
+		public bool IsEncrypted { get; set; } = false;
+		public int Key { get; set; } = 0;
 
 		public Packet(string payload)
 		{

@@ -12,29 +12,11 @@ namespace CommunicationNetwork.Nodes
 	{
 		private double _plaintextProbability = 0.3;
 		private Random _rng = new Random();
+		private int _shift = 0;
 
 		public VulnerableNode(double plaintextProbability = 0.3)
 		{
 			_plaintextProbability = plaintextProbability;
-		}
-
-		public string EncryptPayload(string payload)
-		{
-			var encrypted = new StringBuilder();
-			int shift = _rng.Next(1, 26); // Random shift for encryption
-			foreach (char c in payload)
-			{
-				if (char.IsLetter(c))
-				{
-					char offset = char.IsUpper(c) ? 'A' : 'a';
-					encrypted.Append((char) ((((c + shift) - offset) % 26) + offset));
-				}
-				else
-				{
-					encrypted.Append(c); // Non-letter characters remain unchanged
-				}
-			}
-			return encrypted.ToString();
 		}
 
 		public override void Trasmit(Packet packet)
@@ -48,9 +30,12 @@ namespace CommunicationNetwork.Nodes
 			}
 			else
 			{
-				var encryptedPayload = EncryptPayload(packet.Payload);
+				// Encrypt the payload using a simple Caesar cipher with random key its time
+				string encryptedPayload = Cipher.Encrypt(packet.Payload, _rng.Next(1, 26));
 				Console.WriteLine($"\t{Name} encrypted payload: {encryptedPayload}");
 				packet.Payload = encryptedPayload; // Update packet with encrypted payload
+				packet.IsEncrypted = true;
+				packet.Key = _shift; // Store the encryption key (shift value)
 			}
 			Console.WriteLine();
 		}

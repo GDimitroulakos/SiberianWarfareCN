@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,13 +21,8 @@ namespace CommunicationNetwork.Nodes
 			Name = name;
 		}
 
-		public override void Receive(Packet packet)
+		private protected override void CheckSignature(string oldSignature, string newSignature)
 		{
-			Console.WriteLine("Reached Command Center Node:");
-			Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
-			string oldSignature = packet.Signature;
-			string newSignature = Packet.HashSHA256(packet.Payload);
-
 			if (oldSignature != newSignature)
 			{
 				Console.WriteLine($"\t The original packet has been hacked");
@@ -36,7 +32,28 @@ namespace CommunicationNetwork.Nodes
 			else
 			{
 				Console.WriteLine($"\t The packet is intact and has not been altered.");
-				Console.WriteLine($"\t The packet payload is: {packet.Payload}");
+			}
+		}
+
+		public override void Receive(Packet packet)
+		{
+			Console.WriteLine("Reached Command Center Node:");
+			Console.WriteLine($"\t{Name} received packet with payload '{packet.Payload}'.");
+			if (packet.IsEncrypted)
+			{
+				string decryptedPayload = Cipher.Decrypt(packet.Payload, packet.Key);
+				Console.WriteLine($"\t{Name} decrypted payload: {decryptedPayload}");
+				string oldSignature = packet.Signature;
+				string newSignature = Packet.HashSHA256(decryptedPayload);
+
+				CheckSignature(oldSignature, newSignature);
+			} 
+			else
+			{
+				string oldSignature = packet.Signature;
+				string newSignature = Packet.HashSHA256(packet.Payload);
+
+				CheckSignature(oldSignature, newSignature);
 			}
 		}
 
