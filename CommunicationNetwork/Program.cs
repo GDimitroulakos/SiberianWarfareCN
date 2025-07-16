@@ -63,7 +63,7 @@ namespace CommunicationNetwork {
             SW.Execute();
 
             // Create Bellman-Ford algorithm instance
-            BellmanFord bellmanFord = new BellmanFord();
+            BellmanFord bellmanFord = new BellmanFord("bell1");
             // Set the input graph for the Bellman-Ford algorithm assuming that 
             // the weights have been set by the CreateSampleWeightsAlgorithm
             bellmanFord.SetGraph(graph);
@@ -83,10 +83,15 @@ namespace CommunicationNetwork {
             // 2. If the algorithm takes multiple graphs how can we ensure that the proper graph is used?
             // We must have a way to link the input graph with the key to access the weights in the edges
             // together.
-            bellmanFord.RegisterInput("WEIGHT",SW,SW.K_WEIGHT);
+            bellmanFord.RegisterInput(graph,nameof(bellmanFord.K_WEIGHT), SW,SW.K_WEIGHT);
             // Execute the Bellman-Ford algorithm
             bellmanFord.Execute();
 
+            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            topologicalSort.SetGraph(directedGraph);
+            topologicalSort.RegisterInput(directedGraph,nameof(topologicalSort.K_DFSFINISHEDTIMES),
+                dfsDirected,dfsDirected.K_TIMEFINISHED);
+            topologicalSort.Execute();
 
 
 

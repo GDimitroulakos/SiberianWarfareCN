@@ -10,14 +10,14 @@ namespace CommunicationNetwork.Algorithm {
     public class BellmanFord : BaseAlgorithm, IDataProvider,IDataConsumer {
         protected Dictionary<string, object> _outputDataLinks = new Dictionary<string, object>();
         // Input data Metadata keys
-        private string K_WEIGHT;
+        public string K_WEIGHT;
 
         // Output data Metadata keys
         readonly string K_PARENT = "PARENT";
         readonly string K_PATHS = "PATHS";
         readonly string K_DISTANCE = "DISTANCE";
 
-        public BellmanFord():base() {
+        public BellmanFord(string name):base() {
             // Initialize the output data links
             _outputDataLinks["DISTANCE"] = K_DISTANCE;
             _outputDataLinks["PARENT"] = K_PARENT;
@@ -74,9 +74,10 @@ namespace CommunicationNetwork.Algorithm {
             throw new KeyNotFoundException($"Key '{key}' not found in output data links.");
         }
 
-        public void RegisterInput(string PublicConsumerKey,
+        public void RegisterInput(IGraph graph,string inputkey,
             IDataProvider provider, string PublicProviderkey) {
-            if (PublicConsumerKey == "WEIGHT") {
+            ///TODO : Verify that the graph has data in the given key
+            if (inputkey == "K_WEIGHT") {
                 K_WEIGHT = provider.GetDatakey(PublicProviderkey) as string;
             }
         }

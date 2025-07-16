@@ -12,7 +12,7 @@ namespace CommunicationNetwork.Algorithm {
     }
 
     public interface IDataConsumer {
-        void RegisterInput(string PublicConsumerKey,
+        void RegisterInput(IGraph graph,string inputkey,
             IDataProvider provider, string PublicProviderkey);
     }
 

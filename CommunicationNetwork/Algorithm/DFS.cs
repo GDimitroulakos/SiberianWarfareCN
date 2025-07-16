@@ -26,16 +26,16 @@ namespace CommunicationNetwork.Algorithms {
 
 
         // Output data Metadata keys
-        readonly string K_COLOR = "COLOR";
-        readonly string K_TIMEDISCOVERY = "TIMEDISCOVERED";
-        readonly string K_TIMEFINISHED = "TimeFinished";
+        public readonly string K_COLOR = "COLOR";
+        public readonly string K_TIMEDISCOVERY = "TIME_DISCOVERED";
+        public readonly string K_TIMEFINISHED = "TIME_FINISHED";
 
 
         public DFS(string name):base() {
             // Initialize the output data links
             _outputDataLinks["COLOR"] = K_COLOR;
-            _outputDataLinks["TIMEDISCOVERED"] = K_TIMEDISCOVERY;
-            _outputDataLinks["TIMEFINISHED"] = K_TIMEFINISHED;
+            _outputDataLinks["TIME_DISCOVERED"] = K_TIMEDISCOVERY;
+            _outputDataLinks["TIME_FINISHED"] = K_TIMEFINISHED;
         }
         
         public void SetColor(Node node, string color) {
