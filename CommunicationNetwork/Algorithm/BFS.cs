@@ -14,17 +14,17 @@ namespace CommunicationNetwork.Algorithm {
 
 
         // Output data Metadata keys
-        readonly string K_COLOR = "COLOR";
-        readonly string K_DISTANCE = "DISTANCE";
-        readonly string K_PARENT = "PARENT";
-        readonly string K_PATHS = "PATHS";
+       public readonly string K_COLOR = "COLOR";
+       public readonly string K_DISTANCE = "DISTANCE";
+       public readonly string K_PARENT = "PARENT";
+       public readonly string K_PATHS = "PATHS";
 
         // 3. Algorithm state
         private IGraph _graph;
         private Node _start = null;
         private Queue<Node> queue;
 
-        public BFS(string name) : base() {
+        public BFS(string name) : base(name) {
             // Initialize the output data links
             _outputDataLinks["COLOR"] = K_COLOR;
             _outputDataLinks["DISTANCE"] = K_DISTANCE;

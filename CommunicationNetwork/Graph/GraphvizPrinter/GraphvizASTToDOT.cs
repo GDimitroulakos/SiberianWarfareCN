@@ -125,7 +125,7 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             // Iterate through each value in the node property and output them
             // its in own line. VisitChildren cannot do that
             foreach (GraphvizPropertyValue value in property.
-                         Children[GraphvizFileLayout.PROPERTIES].
+                         Children[GraphvizFileLayout.GRAPH_LEVEL_ATTRIBUTES].
                          Cast<GraphvizPropertyValue>()) {
                 if (i++ > 0) _writer.Write("\n");
                 m_parents.Push(property);

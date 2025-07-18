@@ -10,7 +10,7 @@ namespace CommunicationNetwork.Algorithm {
     public class TopologicalSort :BaseAlgorithm, IDataConsumer,IDataProvider {
         IGraph graph;
         protected Dictionary<string, object> _outputDataLinks = new Dictionary<string, object>();
-        public TopologicalSort(string name) : base() {
+        public TopologicalSort(string name) : base(name) {
             this.graph = graph;
             // Initialize the output data links
             _outputDataLinks["TOPOLOGICAL_ORDER"] = K_TOPOLOGICALORDER;

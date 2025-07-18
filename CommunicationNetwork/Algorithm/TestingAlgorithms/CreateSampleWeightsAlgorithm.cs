@@ -21,7 +21,7 @@ namespace CommunicationNetwork.Algorithm.TestingAlgorithms {
             _graph = graph;
         }
 
-        public CreateSampleWeightsAlgorithm() : base() {
+        public CreateSampleWeightsAlgorithm(string name) : base(name) {
             // Initialize the output data links
             _outputDataLinks["WEIGHT"] = K_WEIGHT;
         }

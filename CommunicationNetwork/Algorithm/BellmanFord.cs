@@ -17,7 +17,7 @@ namespace CommunicationNetwork.Algorithm {
         readonly string K_PATHS = "PATHS";
         readonly string K_DISTANCE = "DISTANCE";
 
-        public BellmanFord(string name):base() {
+        public BellmanFord(string name):base(name) {
             // Initialize the output data links
             _outputDataLinks["DISTANCE"] = K_DISTANCE;
             _outputDataLinks["PARENT"] = K_PARENT;

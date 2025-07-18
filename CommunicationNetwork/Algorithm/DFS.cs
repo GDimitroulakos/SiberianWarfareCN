@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CommunicationNetwork.Algorithm;
 using CommunicationNetwork.Algorithms;
 using CommunicationNetwork.Graph;
@@ -26,46 +27,57 @@ namespace CommunicationNetwork.Algorithms {
 
 
         // Output data Metadata keys
-        public readonly string K_COLOR = "COLOR";
-        public readonly string K_TIMEDISCOVERY = "TIME_DISCOVERED";
-        public readonly string K_TIMEFINISHED = "TIME_FINISHED";
+        public readonly InfoKey K_COLOR;
+        public readonly InfoKey K_TIMEDISCOVERY;
+        public readonly InfoKey K_TIMEFINISHED;
 
 
-        public DFS(string name):base() {
+        public DFS(string name) : base(name) {
             // Initialize the output data links
-            _outputDataLinks["COLOR"] = K_COLOR;
-            _outputDataLinks["TIME_DISCOVERED"] = K_TIMEDISCOVERY;
-            _outputDataLinks["TIME_FINISHED"] = K_TIMEFINISHED;
+            K_COLOR = new InfoKey("COLOR",
+               "The key acquires the COLOR property of each graph node derived from the DFS algorithm execution",
+               InfoKey.DIRECTION.OUTPUT, $"DFS:{name}"); ;
+            _outputDataLinks[K_COLOR.AttributeKeyID] = K_COLOR;
+
+            K_TIMEDISCOVERY = new InfoKey("TIME_DISCOVERY",
+               "The key acquires the TIME_DISCOVERY property of each graph node derived from the DFS algorithm execution",
+               InfoKey.DIRECTION.OUTPUT, $"DFS:{name}");
+            _outputDataLinks[K_TIMEDISCOVERY.AttributeKeyID] = K_TIMEDISCOVERY;
+
+            K_TIMEFINISHED = new InfoKey("TIME_FINISHED",
+                "The key acquires the TIME_FINISHED property of each graph node derived from the DFS algorithm execution",
+                InfoKey.DIRECTION.OUTPUT, $"DFS:{name}");
+            _outputDataLinks[K_TIMEFINISHED.AttributeKeyID] = K_TIMEFINISHED;
         }
-        
+
         public void SetColor(Node node, string color) {
-            node.MetaData[K_COLOR] = color;
+            node.MetaData[K_COLOR.AttributeKeyID] = color;
         }
         public string Color(Node node) {
-            if (node.MetaData.TryGetValue(K_COLOR, out var color)) {
+            if (node.MetaData.TryGetValue(K_COLOR.AttributeKeyID, out var color)) {
                 return color as string;
             }
             throw new InvalidOperationException($"Color metadata not found for node {node.ID}.");
         }
         public void SetTimeDiscovered(Node node, int time) {
-            node.MetaData[K_TIMEDISCOVERY] = time;
+            node.MetaData[K_TIMEDISCOVERY.AttributeKeyID] = time;
         }
         public int TimeDiscovered(Node node) {
-            if (node.MetaData.TryGetValue(K_TIMEDISCOVERY, out var time)) {
+            if (node.MetaData.TryGetValue(K_TIMEDISCOVERY.AttributeKeyID, out var time)) {
                 return (int)time;
             }
             throw new InvalidOperationException($"TimeDiscovered metadata not found for node {node.ID}.");
         }
         public void SetTimeFinished(Node node, int time) {
-            node.MetaData[K_TIMEFINISHED] = time;
+            node.MetaData[K_TIMEFINISHED.AttributeKeyID] = time;
         }
         public int TimeFinished(Node node) {
-            if (node.MetaData.TryGetValue(K_TIMEFINISHED, out var time)) {
+            if (node.MetaData.TryGetValue(K_TIMEFINISHED.AttributeKeyID, out var time)) {
                 return (int)time;
             }
             throw new InvalidOperationException($"TimeFinished metadata not found for node {node.ID}.");
         }
-        
+
         public object GetDatakey(string key) {
             if (_outputDataLinks.TryGetValue(key, out var value)) {
                 return value;
@@ -77,8 +89,8 @@ namespace CommunicationNetwork.Algorithms {
             time = 0;
             foreach (Node node in _graph.Nodes) {
                 // Initialize metadata for each node
-                SetColor(node,"WHITE");
-                SetTimeDiscovered(node,-1);
+                SetColor(node, "WHITE");
+                SetTimeDiscovered(node, -1);
                 SetTimeFinished(node, -1);
             }
         }
@@ -98,9 +110,9 @@ namespace CommunicationNetwork.Algorithms {
 
         private void DFSVisit(Node node) {
             time = time + 1;
-            SetTimeDiscovered(node,time);
+            SetTimeDiscovered(node, time);
             SetColor(node, "GRAY"); // Visiting
-            
+
             foreach (var neighbor in _graph.GetNeighbors(node)) {
                 if (Color(neighbor) == "WHITE") {
                     DFSVisit(neighbor);

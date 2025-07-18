@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="bin\Debug\net9.0\AST.gif" />
     <Content Include="bin\Debug\net9.0\test_directed.gif" />
   </ItemGroup>
 

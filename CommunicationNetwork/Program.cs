@@ -58,7 +58,7 @@ namespace CommunicationNetwork {
             bfsDirected.SetSource(node1);
             bfsDirected.Execute();
 
-            CreateSampleWeightsAlgorithm SW = new CreateSampleWeightsAlgorithm();
+            CreateSampleWeightsAlgorithm SW = new CreateSampleWeightsAlgorithm("sampleWeights");
             SW.SetGraph(graph);
             SW.Execute();
 
@@ -87,30 +87,17 @@ namespace CommunicationNetwork {
             // Execute the Bellman-Ford algorithm
             bellmanFord.Execute();
 
-            TopologicalSort topologicalSort = new TopologicalSort("topo1");
+            /*TopologicalSort topologicalSort = new TopologicalSort("topo1");
             topologicalSort.SetGraph(directedGraph);
             topologicalSort.RegisterInput(directedGraph,nameof(topologicalSort.K_DFSFINISHEDTIMES),
                 dfsDirected,dfsDirected.K_TIMEFINISHED);
-            topologicalSort.Execute();
+            topologicalSort.Execute();*/
 
-
-
-            /*
-                       TopologicalSort topologicalSort = new TopologicalSort("topo1");
-            topologicalSort.SetGraph(directedGraph);
-            topologicalSort.SetDFS(dfsDirected);
-            topologicalSort.Execute();
-            foreach (Node topologicalSortTopologicalOrderedNode in topologicalSort.TopologicalOrderedNodes) {
-                Console.Write($"{topologicalSortTopologicalOrderedNode.ID},");
-            }
 
             GraphToGraphvizASTGeneration graphToDOTGeneration = new GraphToGraphvizASTGeneration();
-            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(bfsDirected.MetadataKey);
-            graphToDOTGeneration.AddGraphMetadataKey(bfsDirected.MetadataKey);
-            graphToDOTGeneration.AddEdgeMetadataKey(bellmanFordDirected.MetadataKey);
-            graphToDOTGeneration.AddNodeMetadataKey(bellmanFordDirected.MetadataKey);
-            graphToDOTGeneration.AddGraphMetadataKey(bellmanFordDirected.MetadataKey);
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.K_TIMEFINISHED);
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.K_TIMEDISCOVERY);
+            graphToDOTGeneration.AddNodeMetadataKey(dfsDirected.K_COLOR);
             graphToDOTGeneration.ToAST(directedGraph, "test_directed.dot");
             GraphvizFileLayoutVisitor graphvizFileLayoutVisitor = new GraphvizFileLayoutVisitor();
 
@@ -119,13 +106,7 @@ namespace CommunicationNetwork {
 
             GraphvizASTPrinter graphvizASTPrinter = new GraphvizASTPrinter();
             graphvizASTPrinter.GenerateDot(graphToDOTGeneration.DotFileAst, "AST.dot");
-            */
-
-
-
-
-
-
+            
         }
     }
 }

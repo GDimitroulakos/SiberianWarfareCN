@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Xml.Linq;
 
 namespace CommunicationNetwork.Graph.GraphvizPrinter {
     public abstract class ASTNode {
@@ -40,6 +41,19 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
     }
 
+
+    // Graphviz File Layout class represents the structure of a Graphviz file (.dot)
+    // It contains 4 sections 
+    // 1. Properties refers to global properties of the graph that are deposited in the
+    // first section of the file.
+    // 2. Node Definitions refers to the nodes of the graph, which are defined in the second section.
+    // Nodes are followed by their attributes enclosed in square brackets.
+    // 3. Edge Definitions refers to the edges of the graph, which are defined in the third section.
+    // Edges are defined by the source and target nodes, and can also have attributes that follow
+    // the edge definition.
+    // 4. Subgraph Definitions refers to subgraphs, which are defined in the fourth section.
+    // 5. Default Node Attributes refers to the default attributes that are applied to all nodes in the graph.
+    // 6. Default Edge Attributes refers to the default attributes that are applied to all edges in the graph.
     public class GraphvizFileLayout : ASTComposite {
 
         public enum GRAPHTYPE {
@@ -53,8 +67,12 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         public string GraphName => _graphName;
 
 
-        public const int PROPERTIES = 0, NODE_DEFINITIONS = 1,
-            EDGE_DEFINITIONS = 2, SUBGRAPH_DEFINITIONS = 3;
+        public const int GRAPH_LEVEL_ATTRIBUTES = 0,
+                            DEFAULT_NODE_ATTRIBUTES = 1,
+                            DEFAULT_EDGE_ATTRIBUTES = 2, 
+                            NODE_DECLARATIONS = 3,
+                            EDGE_DECLARATIONS = 4,
+                            SUBGRAPH_DECLARATIONS = 5;
 
         
         public GraphvizFileLayout(string name, GRAPHTYPE graphType) :
@@ -68,6 +86,9 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
     }
 
+    // Graphviz Node represents a Graphviz Node Definition in the AST. Graphviz node
+    // has one type of children, which is physically a list of attributes that is 
+    // enclosed in square brackets in the Graphviz file.
     public class GraphvizNode : ASTComposite {
         string _nodeID;
         public string NodeID => _nodeID;
@@ -82,6 +103,11 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             visitor.Visit(this);
         }
     }
+
+
+    // Graphviz Edge represents a Graphviz Edge Definition in the AST. Graphviz edge
+    // has one type of children, which is physically a list of attribute collections
+    // Normally the attributes are placed in a single GraphvizProperties node.
     public class GraphvizEdge : ASTComposite {
         string _sourceNodeID;
         string _targetNodeID;
@@ -98,6 +124,10 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
     }
 
+
+    // GraphvizProperties represents a collection of properties that can be applied
+    // to a Graphviz Node or Edge. Since the syntax of Node and Edge properties
+    // is the same, this class is used for both GraphvizNode and GraphvizEdge.
     public class GraphvizProperties : ASTComposite {
         
         public const int PROPERTIES = 0;
@@ -109,6 +139,12 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
         }
     }
 
+    // GraphvizProperty represents a single property in a collection of properties.
+    // The property may have one or more values, which are represented by
+    // GraphvizPropertyValue leaf nodes. The property name is stored in the PropertyName
+    // For example, the graphviz property "label" represents literal text that is printed
+    // aside of the node or edge in the Graphviz graph and could contain multiple values
+    // originating from different attributes that the node or edge has.
     public class GraphvizProperty : ASTComposite {
         string _propertyName;
         public string PropertyName => _propertyName;
@@ -122,6 +158,8 @@ namespace CommunicationNetwork.Graph.GraphvizPrinter {
             visitor.Visit(this);
         }
     }
+
+    // GraphvizPropertyValue represents a single value of a property
     public class GraphvizPropertyValue : ASTLeaf {
         private string _propertyValue;
         public string PropertyValue => _propertyValue;
